@@ -284,8 +284,17 @@ export default function Form() {
 
                             <form onSubmit={submit}>
                                 {readOnly && (
-                                    <div className="alert alert-info" style={{ fontSize: 13, padding: "6px 12px", marginBottom: 10 }}>
-                                        <i className="lni lni-lock mr-5"></i> Form ini hanya dapat dilihat (status: <strong>{item.eStatus}</strong>)
+                                    <div
+                                        className="alert alert-info"
+                                        style={{
+                                            fontSize: 13,
+                                            padding: "6px 12px",
+                                            marginBottom: 10,
+                                        }}
+                                    >
+                                        <i className="lni lni-lock mr-5"></i>{" "}
+                                        Form ini hanya dapat dilihat (status:{" "}
+                                        <strong>{item.eStatus}</strong>)
                                     </div>
                                 )}
                                 <h6 className="section-title">
@@ -665,7 +674,9 @@ export default function Form() {
                                                                 value={
                                                                     row.iIdBarang
                                                                 }
-                                                                disabled={readOnly}
+                                                                disabled={
+                                                                    readOnly
+                                                                }
                                                                 onChange={(e) =>
                                                                     setDetail(
                                                                         idx,
@@ -719,7 +730,9 @@ export default function Form() {
                                                                 value={
                                                                     row.iIdBarangKemasan
                                                                 }
-                                                                disabled={readOnly}
+                                                                disabled={
+                                                                    readOnly
+                                                                }
                                                                 onChange={(e) =>
                                                                     setDetail(
                                                                         idx,
@@ -758,7 +771,9 @@ export default function Form() {
                                                                 value={
                                                                     row.nHarga
                                                                 }
-                                                                readOnly={readOnly}
+                                                                readOnly={
+                                                                    readOnly
+                                                                }
                                                                 onChange={(e) =>
                                                                     setDetail(
                                                                         idx,
@@ -777,7 +792,9 @@ export default function Form() {
                                                                 value={
                                                                     row.nDisc
                                                                 }
-                                                                readOnly={readOnly}
+                                                                readOnly={
+                                                                    readOnly
+                                                                }
                                                                 onChange={(e) =>
                                                                     setDetail(
                                                                         idx,
@@ -794,7 +811,9 @@ export default function Form() {
                                                                 type="text"
                                                                 inputMode="numeric"
                                                                 value={row.iQty}
-                                                                readOnly={readOnly}
+                                                                readOnly={
+                                                                    readOnly
+                                                                }
                                                                 onChange={(e) =>
                                                                     setDetail(
                                                                         idx,
@@ -1066,14 +1085,16 @@ export default function Form() {
                                         className="d-flex justify-content-end action-bar"
                                         style={{ gap: 8 }}
                                     >
-                                        {isEdit && data.eStatus === "baru" && (
+                                        {isEdit && data.eStatus === "Baru" && (
                                             <button
                                                 type="button"
                                                 disabled={processing}
                                                 className="main-btn success-btn btn-hover btn-sm-custom"
                                                 onClick={() => {
                                                     if (
-                                                        confirm("Proses order ini?")
+                                                        confirm(
+                                                            "Proses order ini?",
+                                                        )
                                                     )
                                                         doSubmit("proses");
                                                 }}
@@ -1083,27 +1104,28 @@ export default function Form() {
                                                     : "Proses"}
                                             </button>
                                         )}
-                                        {isEdit && data.eStatus === "proses" && (
-                                            <button
-                                                type="button"
-                                                disabled={processing}
-                                                className="main-btn warning-btn btn-hover btn-sm-custom"
-                                                onClick={() => {
-                                                    if (
-                                                        confirm(
-                                                            "Checkout order ini?",
+                                        {isEdit &&
+                                            data.eStatus === "Proses" && (
+                                                <button
+                                                    type="button"
+                                                    disabled={processing}
+                                                    className="main-btn warning-btn btn-hover btn-sm-custom"
+                                                    onClick={() => {
+                                                        if (
+                                                            confirm(
+                                                                "Checkout order ini?",
+                                                            )
                                                         )
-                                                    )
-                                                        router.post(
-                                                            `/transaksi/order/${item.iId}/checkout`,
-                                                        );
-                                                }}
-                                            >
-                                                {processing
-                                                    ? "Memproses..."
-                                                    : "Checkout"}
-                                            </button>
-                                        )}
+                                                            router.post(
+                                                                `/transaksi/order/${item.iId}/checkout`,
+                                                            );
+                                                    }}
+                                                >
+                                                    {processing
+                                                        ? "Memproses..."
+                                                        : "Checkout"}
+                                                </button>
+                                            )}
                                         <button
                                             type="submit"
                                             disabled={processing}

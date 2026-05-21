@@ -37,6 +37,14 @@ use App\Http\Controllers\Transaksi\TransaksiOrderController;
 use App\Http\Controllers\Transaksi\TransaksiPackingController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/storage/{path}', function (string $path) {
+    $fullPath = storage_path('app/public/' . $path);
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+    return response()->file($fullPath);
+})->where('path', '.*')->name('storage.serve');
+
 Route::redirect('/', '/dashboard');
 
 Route::middleware('guest')->group(function () {
