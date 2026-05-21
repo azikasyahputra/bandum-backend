@@ -32,7 +32,9 @@ use App\Http\Controllers\Master\TipePembayaranController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Master\VendorController;
 use App\Http\Controllers\Master\VendorAlamatController;
+use App\Http\Controllers\Transaksi\TransaksiInvoiceController;
 use App\Http\Controllers\Transaksi\TransaksiOrderController;
+use App\Http\Controllers\Transaksi\TransaksiPackingController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -111,6 +113,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/order/{id}/edit', [TransaksiOrderController::class, 'edit'])->name('order.edit');
         Route::put('/order/{id}', [TransaksiOrderController::class, 'update'])->name('order.update');
         Route::delete('/order/{id}', [TransaksiOrderController::class, 'destroy'])->name('order.destroy');
+        Route::post('/order/{id}/checkout', [TransaksiOrderController::class, 'checkout'])->name('order.checkout');
         Route::get('/order/customer-alamat/{customerId}', [TransaksiOrderController::class, 'customerAlamat'])->name('order.customer-alamat');
+
+        Route::get('/packing', [TransaksiPackingController::class, 'index'])->name('packing.index');
+        Route::get('/packing/{id}/edit', [TransaksiPackingController::class, 'edit'])->name('packing.edit');
+        Route::put('/packing/{id}', [TransaksiPackingController::class, 'update'])->name('packing.update');
+        Route::delete('/packing/{id}', [TransaksiPackingController::class, 'destroy'])->name('packing.destroy');
+
+        Route::get('/invoice', [TransaksiInvoiceController::class, 'index'])->name('invoice.index');
+        Route::get('/invoice/{id}/edit', [TransaksiInvoiceController::class, 'edit'])->name('invoice.edit');
+        Route::put('/invoice/{id}', [TransaksiInvoiceController::class, 'update'])->name('invoice.update');
     });
 });

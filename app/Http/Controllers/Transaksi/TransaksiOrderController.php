@@ -13,6 +13,9 @@ use App\Models\JenisPengiriman;
 use App\Models\Pembayaran;
 use App\Models\TransaksiOrderDetail;
 use App\Models\TransaksiOrderHeader;
+use App\Models\TransaksiPackingBatch;
+use App\Models\TransaksiPackingDetail;
+use App\Models\TransaksiPackingHeader;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -332,5 +335,98 @@ class TransaksiOrderController extends Controller
             ->where(function ($q) { $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted'); })
             ->get(['iId as value', 'vAlamat as label', 'vNama']);
         return response()->json($alamat);
+    }
+
+    public function checkout(int $id): RedirectResponse
+    {
+        $order = TransaksiOrderHeader::with('details')->findOrFail($id);
+
+        if ($order->eStatus !== 'Proses') {
+            return back()->with('error', 'Status order harus "Proses" untuk checkout.');
+        }
+
+        $exists = TransaksiPackingHeader::where('iIdOrder', $id)->exists();
+        if ($exists) {
+            return back()->with('error', 'Order ini sudah memiliki packing.');
+        }
+
+        $userId = auth()->id() ?? 1;
+        $vNoPacking = 'PCK-' . now()->format('Ymd') . '-' . str_pad((string)($id), 4, '0', STR_PAD_LEFT);
+
+        DB::beginTransaction();
+        try {
+            $packing = TransaksiPackingHeader::create([
+                'vNoPacking' => $vNoPacking,
+                'iIdOrder' => $order->iId,
+                'vNoOrder' => $order->vNoOrder,
+                'iIdCustomer' => $order->iIdCustomer,
+                'vNamaCustomer' => $order->vNamaCustomer,
+                'eStatus' => 'proses',
+                'nTotal' => $order->nTotal,
+                'nTotalDiskon' => $order->nTotalDiskon,
+                'nPpn' => $order->nPpn,
+                'nBiayaKirim' => $order->nBiayaKirim,
+                'nBiayaPacking' => $order->nBiayaPacking,
+                'nGrandTotal' => $order->nGrandTotal,
+                'eDeleted' => 'tidak',
+                'iCreatedid' => $userId,
+                'iUpdatedid' => $userId,
+                'tCreated' => now(),
+                'tUpdated' => now(),
+            ]);
+
+            foreach ($order->details as $detail) {
+                $packingDetail = TransaksiPackingDetail::create([
+                    'iIdOrder' => $order->iId,
+                    'iIdOrderDetail' => $detail->iId,
+                    'vNoOrder' => $order->vNoOrder,
+                    'iIdPacking' => $packing->iId,
+                    'vNoPacking' => $vNoPacking,
+                    'iIdBarang' => $detail->iIdBarang,
+                    'iIdBarangKemasan' => $detail->iIdBarangKemasan,
+                    'nHarga' => $detail->nHarga,
+                    'nDisc' => $detail->nDisc,
+                    'iQty' => $detail->iQty,
+                    'nPpn' => $detail->nPpn,
+                    'nTotal' => $detail->nTotal,
+                    'eStatus' => 'open',
+                    'eDeleted' => 'tidak',
+                    'iCreatedid' => $userId,
+                    'iUpdatedid' => $userId,
+                    'tCreated' => now(),
+                    'tUpdated' => now(),
+                ]);
+
+                TransaksiPackingBatch::create([
+                    'iIdOrder' => $order->iId,
+                    'iIdOrderDetail' => $detail->iId,
+                    'vNoOrder' => $order->vNoOrder,
+                    'iIdPacking' => $packing->iId,
+                    'vNoPacking' => $vNoPacking,
+                    'iIdPackingDetail' => $packingDetail->iId,
+                    'iIdBarang' => $detail->iIdBarang,
+                    'iIdBarangKemasan' => $detail->iIdBarangKemasan,
+                    'vBatch' => '',
+                    'iQty' => $detail->iQty,
+                    'eDeleted' => 'tidak',
+                    'iCreatedid' => $userId,
+                    'iUpdatedid' => $userId,
+                    'tCreated' => now(),
+                    'tUpdated' => now(),
+                ]);
+            }
+
+            $order->update([
+                'eStatus' => 'packing',
+                'iUpdatedid' => $userId,
+                'tUpdated' => now(),
+            ]);
+
+            DB::commit();
+            return redirect('/transaksi/order')->with('success', 'Checkout berhasil. Packing telah dibuat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal checkout: ' . $e->getMessage());
+        }
     }
 }

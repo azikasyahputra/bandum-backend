@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TransaksiPackingHeader extends Model
 {
@@ -11,4 +12,9 @@ class TransaksiPackingHeader extends Model
     protected $table = 'transaksi_packing_header';
 
     protected $fillable = ['iId', 'vNoPacking', 'iIdOrder', 'vNoOrder', 'iIdCustomer', 'vNamaCustomer', 'eStatus', 'nTotal', 'nTotalDiskon', 'nPpn', 'nBiayaKirim', 'nBiayaPacking', 'nGrandTotal', 'eDeleted', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated'];
+
+    public function details(): HasMany
+    {
+        return $this->hasMany(TransaksiPackingDetail::class, 'iIdPacking', 'iId');
+    }
 }

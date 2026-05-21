@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TransaksiInvoiceDetail extends Model
 {
+    public $timestamps = false;
     protected $primaryKey = 'iId';
     protected $table = 'transaksi_invoice_detail';
 

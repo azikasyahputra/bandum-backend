@@ -53,10 +53,16 @@ const sidebarGroups = [
             { label: "Gudang", href: "/master/gudang" },
             { label: "Jenis Pengiriman", href: "/master/jenis-pengiriman" },
             { label: "Kategori", href: "/master/kategori" },
-            { label: "Kategori Perusahaan", href: "/master/kategori-perusahaan" },
+            {
+                label: "Kategori Perusahaan",
+                href: "/master/kategori-perusahaan",
+            },
             { label: "Kecamatan", href: "/master/kecamatan" },
             { label: "Kelurahan", href: "/master/kelurahan" },
-            { label: "Klasifikasi Perusahaan", href: "/master/klasifikasi-perusahaan" },
+            {
+                label: "Klasifikasi Perusahaan",
+                href: "/master/klasifikasi-perusahaan",
+            },
             { label: "Kota", href: "/master/kota" },
             { label: "Negara", href: "/master/negara" },
             { label: "Pembayaran", href: "/master/pembayaran" },
@@ -70,16 +76,18 @@ const sidebarGroups = [
             { label: "Vendor", href: "/master/vendor" },
         ],
     },
-        {
-            id: "transaksi",
-            label: "Transaksi",
-            icon: "lni lni-cart",
-            items: [
-                { label: "Order", href: "/transaksi/order" },
-            ],
-        },
-        {
-            id: "ui-elements",
+    {
+        id: "transaksi",
+        label: "Transaksi",
+        icon: "lni lni-cart",
+        items: [
+            { label: "Order", href: "/transaksi/order" },
+            { label: "Packing", href: "/transaksi/packing" },
+            { label: "Invoice", href: "/transaksi/invoice" },
+        ],
+    },
+    {
+        id: "ui-elements",
         label: "UI Elements",
         icon: "lni lni-layout",
         items: [
@@ -183,7 +191,11 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
                     <li key={`${item.id}-${child.label}`}>
                         <SidebarLink
                             href={child.href}
-                            className={child.href !== "#" && currentUrl === child.href ? "active" : ""}
+                            className={
+                                child.href !== "#" && currentUrl === child.href
+                                    ? "active"
+                                    : ""
+                            }
                         >
                             {child.label}
                         </SidebarLink>
@@ -198,11 +210,14 @@ export default function Sidebar({ sidebarOpen }) {
     const { url } = usePage();
     const [openMenus, setOpenMenus] = useState(() =>
         sidebarGroups.reduce((menus, item) => {
-            if (item.items && (item.open || item.items.some((child) => child.href === url))) {
+            if (
+                item.items &&
+                (item.open || item.items.some((child) => child.href === url))
+            ) {
                 menus[item.id] = true;
             }
             return menus;
-        }, {})
+        }, {}),
     );
 
     const toggleMenu = (id) => {
@@ -216,7 +231,7 @@ export default function Sidebar({ sidebarOpen }) {
         <aside className={`sidebar-nav-wrapper ${sidebarOpen ? "active" : ""}`}>
             <div className="navbar-logo">
                 <Link href="/">
-                    <img src={asset("images/logo/logo.svg")} alt="PlainAdmin logo" />
+                    <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: 1 }}>BandumOffice</span>
                 </Link>
             </div>
 
@@ -233,22 +248,6 @@ export default function Sidebar({ sidebarOpen }) {
                     ))}
                 </ul>
             </nav>
-
-            <div className="promo-box">
-                <div className="promo-icon">
-                    <img className="mx-auto" src={asset("images/logo/logo-icon-big.svg")} alt="Logo" />
-                </div>
-                <h3>Upgrade to PRO</h3>
-                <p>Improve your development process and start doing more with PlainAdmin PRO!</p>
-                <a
-                    href="https://plainadmin.com/pro"
-                    target="_blank"
-                    rel="noreferrer nofollow"
-                    className="main-btn primary-btn btn-hover"
-                >
-                    Upgrade to PRO
-                </a>
-            </div>
         </aside>
     );
 }
