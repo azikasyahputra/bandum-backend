@@ -1,21 +1,95 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Master\ArtikelController;
+use App\Http\Controllers\Master\BannerController;
+use App\Http\Controllers\Master\BarangController;
+use App\Http\Controllers\Master\BrandController;
+use App\Http\Controllers\Master\CustomerController;
+use App\Http\Controllers\Master\EkspedisiController;
+use App\Http\Controllers\Master\FaqController;
+use App\Http\Controllers\Master\FeaturesController;
+use App\Http\Controllers\Master\GudangController;
+use App\Http\Controllers\Master\JenisPengirimanController;
+use App\Http\Controllers\Master\KategoriController;
+use App\Http\Controllers\Master\KategoriPerusahaanController;
+use App\Http\Controllers\Master\KecamatanController;
+use App\Http\Controllers\Master\KelurahanController;
+use App\Http\Controllers\Master\KlasifikasiPerusahaanController;
+use App\Http\Controllers\Master\KotaController;
+use App\Http\Controllers\Master\NegaraController;
+use App\Http\Controllers\Master\PembayaranController;
+use App\Http\Controllers\Master\ProvinsiController;
+use App\Http\Controllers\Master\RolesController;
+use App\Http\Controllers\Master\SettingsController;
+use App\Http\Controllers\Master\SubkategoriController;
+use App\Http\Controllers\Master\TestimoniController;
+use App\Http\Controllers\Master\TipePembayaranController;
+use App\Http\Controllers\Master\VendorController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/settings', fn () => inertia('Settings', ['title' => 'Settings']))->name('settings');
-Route::get('/blank-page', fn () => inertia('BlankPage', ['title' => 'Blank Page']))->name('blank-page');
-Route::get('/signin', fn () => inertia('SignIn', ['title' => 'Sign In']))->name('signin');
-Route::get('/signup', fn () => inertia('SignUp', ['title' => 'Sign Up']))->name('signup');
-Route::get('/invoice', fn () => inertia('Invoice', ['title' => 'Invoice']))->name('invoice');
-Route::get('/notifications', fn () => inertia('Notifications', ['title' => 'Notifications']))->name('notifications');
-Route::get('/tables', fn () => inertia('Tables', ['title' => 'Tables']))->name('tables');
-Route::get('/form-elements', fn () => inertia('FormElements', ['title' => 'Form Elements']))->name('form-elements');
-Route::get('/buttons', fn () => inertia('Buttons', ['title' => 'Buttons']))->name('buttons');
-Route::get('/alerts', fn () => inertia('Alerts', ['title' => 'Alerts']))->name('alerts');
-Route::get('/cards', fn () => inertia('Cards', ['title' => 'Cards']))->name('cards');
-Route::get('/typography', fn () => inertia('Typography', ['title' => 'Typography']))->name('typography');
-Route::get('/icons', fn () => inertia('Icons', ['title' => 'Icons']))->name('icons');
-Route::get('/mdi-icons', fn () => inertia('MdiIcons', ['title' => 'MDI Icons']))->name('mdi-icons');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/signin', [LoginController::class, 'create']);
+    Route::post('/login', [LoginController::class, 'store'])->name('login');
+    Route::get('/signup', fn () => inertia('SignUp', ['title' => 'Sign Up']))->name('signup');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/settings', fn () => inertia('Settings', ['title' => 'Settings']))->name('settings');
+    Route::get('/blank-page', fn () => inertia('BlankPage', ['title' => 'Blank Page']))->name('blank-page');
+    Route::get('/invoice', fn () => inertia('Invoice', ['title' => 'Invoice']))->name('invoice');
+    Route::get('/notifications', fn () => inertia('Notifications', ['title' => 'Notifications']))->name('notifications');
+    Route::get('/tables', fn () => inertia('Tables', ['title' => 'Tables']))->name('tables');
+    Route::get('/form-elements', fn () => inertia('FormElements', ['title' => 'Form Elements']))->name('form-elements');
+    Route::get('/buttons', fn () => inertia('Buttons', ['title' => 'Buttons']))->name('buttons');
+    Route::get('/alerts', fn () => inertia('Alerts', ['title' => 'Alerts']))->name('alerts');
+    Route::get('/cards', fn () => inertia('Cards', ['title' => 'Cards']))->name('cards');
+    Route::get('/typography', fn () => inertia('Typography', ['title' => 'Typography']))->name('typography');
+    Route::get('/icons', fn () => inertia('Icons', ['title' => 'Icons']))->name('icons');
+    Route::get('/mdi-icons', fn () => inertia('MdiIcons', ['title' => 'MDI Icons']))->name('mdi-icons');
+
+    Route::prefix('master')->name('master.')->group(function () {
+        $routes = [
+            'artikel' => ArtikelController::class,
+            'banner' => BannerController::class,
+            'barang' => BarangController::class,
+            'brand' => BrandController::class,
+            'customer' => CustomerController::class,
+            'ekspedisi' => EkspedisiController::class,
+            'faq' => FaqController::class,
+            'features' => FeaturesController::class,
+            'gudang' => GudangController::class,
+            'jenis-pengiriman' => JenisPengirimanController::class,
+            'kategori' => KategoriController::class,
+            'kategori-perusahaan' => KategoriPerusahaanController::class,
+            'kecamatan' => KecamatanController::class,
+            'kelurahan' => KelurahanController::class,
+            'klasifikasi-perusahaan' => KlasifikasiPerusahaanController::class,
+            'kota' => KotaController::class,
+            'negara' => NegaraController::class,
+            'pembayaran' => PembayaranController::class,
+            'provinsi' => ProvinsiController::class,
+            'roles' => RolesController::class,
+            'settings' => SettingsController::class,
+            'subkategori' => SubkategoriController::class,
+            'testimoni' => TestimoniController::class,
+            'tipe-pembayaran' => TipePembayaranController::class,
+            'vendor' => VendorController::class,
+        ];
+
+        foreach ($routes as $t => $c) {
+            Route::get("/{$t}", [$c, 'index'])->name("{$t}.index");
+            Route::get("/{$t}/create", [$c, 'create'])->name("{$t}.create");
+            Route::post("/{$t}", [$c, 'store'])->name("{$t}.store");
+            Route::get("/{$t}/{id}/edit", [$c, 'edit'])->name("{$t}.edit");
+            Route::put("/{$t}/{id}", [$c, 'update'])->name("{$t}.update");
+            Route::delete("/{$t}/{id}", [$c, 'destroy'])->name("{$t}.destroy");
+        }
+    });
+});
