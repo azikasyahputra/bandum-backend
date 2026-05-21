@@ -1,0 +1,213 @@
+import { Link, usePage } from "@inertiajs/react";
+import { useState } from "react";
+
+const asset = (path) => `/assets/${path}`;
+
+const sidebarGroups = [
+    {
+        id: "dashboard",
+        label: "Dashboard",
+        icon: "lni lni-grid-alt",
+        items: [{ label: "eCommerce", href: "/dashboard" }],
+        open: true,
+    },
+    {
+        id: "pages",
+        label: "Pages",
+        icon: "lni lni-files",
+        items: [
+            { label: "Settings", href: "/settings" },
+            { label: "Blank Page", href: "/blank-page" },
+        ],
+    },
+    {
+        label: "Invoice",
+        icon: "lni lni-empty-file",
+        href: "/invoice",
+    },
+    {
+        id: "auth",
+        label: "Auth",
+        icon: "lni lni-enter",
+        items: [
+            { label: "Sign In", href: "/signin" },
+            { label: "Sign Up", href: "/signup" },
+        ],
+    },
+    {
+        divider: true,
+    },
+    {
+        id: "ui-elements",
+        label: "UI Elements",
+        icon: "lni lni-layout",
+        items: [
+            { label: "Alerts", href: "/alerts" },
+            { label: "Buttons", href: "/buttons" },
+            { label: "Cards", href: "/cards" },
+            { label: "Typography", href: "/typography" },
+        ],
+    },
+    {
+        id: "icons",
+        label: "Icons",
+        icon: "lni lni-display",
+        items: [
+            { label: "LineIcons", href: "/icons" },
+            { label: "MDI Icons", href: "/mdi-icons" },
+        ],
+    },
+    {
+        id: "forms",
+        label: "Forms",
+        icon: "lni lni-write",
+        items: [{ label: "Form Elements", href: "/form-elements" }],
+    },
+    {
+        label: "Tables",
+        icon: "lni lni-layout",
+        href: "/tables",
+    },
+    {
+        divider: true,
+    },
+    {
+        label: "Notifications",
+        icon: "lni lni-alarm",
+        href: "/notifications",
+    },
+];
+
+function SidebarLink({ href, children, className = "" }) {
+    if (href === "#") {
+        return (
+            <a href={href} className={className}>
+                {children}
+            </a>
+        );
+    }
+    return (
+        <Link href={href} className={className}>
+            {children}
+        </Link>
+    );
+}
+
+function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
+    if (item.divider) {
+        return (
+            <span className="divider">
+                <hr />
+            </span>
+        );
+    }
+
+    const isActive = item.href && item.href !== "#" && currentUrl === item.href;
+
+    if (!item.items) {
+        return (
+            <li className={`nav-item ${isActive ? "active" : ""}`}>
+                <SidebarLink href={item.href}>
+                    <span className="icon">
+                        <i className={item.icon}></i>
+                    </span>
+                    <span className="text">{item.label}</span>
+                </SidebarLink>
+            </li>
+        );
+    }
+
+    const collapseId = `ddmenu-${item.id}`;
+
+    return (
+        <li className="nav-item nav-item-has-children">
+            <button
+                type="button"
+                className={isOpen ? "" : "collapsed"}
+                onClick={onToggle}
+                aria-controls={collapseId}
+                aria-expanded={isOpen}
+                aria-label={`Toggle ${item.label} navigation`}
+            >
+                <span className="icon">
+                    <i className={item.icon}></i>
+                </span>
+                <span className="text">{item.label}</span>
+            </button>
+            <ul
+                id={collapseId}
+                className={`dropdown-nav sidebar-submenu ${isOpen ? "show" : "is-collapsed"}`}
+            >
+                {item.items.map((child) => (
+                    <li key={`${item.id}-${child.label}`}>
+                        <SidebarLink
+                            href={child.href}
+                            className={child.href !== "#" && currentUrl === child.href ? "active" : ""}
+                        >
+                            {child.label}
+                        </SidebarLink>
+                    </li>
+                ))}
+            </ul>
+        </li>
+    );
+}
+
+export default function Sidebar({ sidebarOpen }) {
+    const { url } = usePage();
+    const [openMenus, setOpenMenus] = useState(() =>
+        sidebarGroups.reduce((menus, item) => {
+            if (item.items && (item.open || item.items.some((child) => child.href === url))) {
+                menus[item.id] = true;
+            }
+            return menus;
+        }, {})
+    );
+
+    const toggleMenu = (id) => {
+        setOpenMenus((menus) => ({
+            ...menus,
+            [id]: !menus[id],
+        }));
+    };
+
+    return (
+        <aside className={`sidebar-nav-wrapper ${sidebarOpen ? "active" : ""}`}>
+            <div className="navbar-logo">
+                <Link href="/">
+                    <img src={asset("images/logo/logo.svg")} alt="PlainAdmin logo" />
+                </Link>
+            </div>
+
+            <nav className="sidebar-nav">
+                <ul>
+                    {sidebarGroups.map((item, index) => (
+                        <SidebarItem
+                            key={item.id || item.label || `divider-${index}`}
+                            item={item}
+                            currentUrl={url}
+                            isOpen={Boolean(openMenus[item.id])}
+                            onToggle={() => toggleMenu(item.id)}
+                        />
+                    ))}
+                </ul>
+            </nav>
+
+            <div className="promo-box">
+                <div className="promo-icon">
+                    <img className="mx-auto" src={asset("images/logo/logo-icon-big.svg")} alt="Logo" />
+                </div>
+                <h3>Upgrade to PRO</h3>
+                <p>Improve your development process and start doing more with PlainAdmin PRO!</p>
+                <a
+                    href="https://plainadmin.com/pro"
+                    target="_blank"
+                    rel="noreferrer nofollow"
+                    className="main-btn primary-btn btn-hover"
+                >
+                    Upgrade to PRO
+                </a>
+            </div>
+        </aside>
+    );
+}
