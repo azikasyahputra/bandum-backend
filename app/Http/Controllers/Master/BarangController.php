@@ -31,6 +31,14 @@ class BarangController extends BaseMasterController
         return ['vNama', 'vDeskripsisingkat'];
     }
 
+    protected function relatedTables(): array
+    {
+        return [
+            ['route' => 'barang-kemasan', 'label' => 'Kemasan', 'foreignKey' => 'iIdBarang'],
+            ['route' => 'barang-media', 'label' => 'Media', 'foreignKey' => 'iIdBarang'],
+        ];
+    }
+
     protected function selectOptions(): array
     {
         return [

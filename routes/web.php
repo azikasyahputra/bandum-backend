@@ -5,8 +5,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Master\ArtikelController;
 use App\Http\Controllers\Master\BannerController;
 use App\Http\Controllers\Master\BarangController;
+use App\Http\Controllers\Master\BarangKemasanController;
+use App\Http\Controllers\Master\BarangMediaController;
 use App\Http\Controllers\Master\BrandController;
 use App\Http\Controllers\Master\CustomerController;
+use App\Http\Controllers\Master\CustomerAlamatController;
 use App\Http\Controllers\Master\EkspedisiController;
 use App\Http\Controllers\Master\FaqController;
 use App\Http\Controllers\Master\FeaturesController;
@@ -26,7 +29,10 @@ use App\Http\Controllers\Master\SettingsController;
 use App\Http\Controllers\Master\SubkategoriController;
 use App\Http\Controllers\Master\TestimoniController;
 use App\Http\Controllers\Master\TipePembayaranController;
+use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Master\VendorController;
+use App\Http\Controllers\Master\VendorAlamatController;
+use App\Http\Controllers\Transaksi\TransaksiOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -59,8 +65,11 @@ Route::middleware('auth')->group(function () {
             'artikel' => ArtikelController::class,
             'banner' => BannerController::class,
             'barang' => BarangController::class,
+            'barang-kemasan' => BarangKemasanController::class,
+            'barang-media' => BarangMediaController::class,
             'brand' => BrandController::class,
             'customer' => CustomerController::class,
+            'customer-alamat' => CustomerAlamatController::class,
             'ekspedisi' => EkspedisiController::class,
             'faq' => FaqController::class,
             'features' => FeaturesController::class,
@@ -80,7 +89,9 @@ Route::middleware('auth')->group(function () {
             'subkategori' => SubkategoriController::class,
             'testimoni' => TestimoniController::class,
             'tipe-pembayaran' => TipePembayaranController::class,
+            'users' => UserController::class,
             'vendor' => VendorController::class,
+            'vendor-alamat' => VendorAlamatController::class,
         ];
 
         foreach ($routes as $t => $c) {
@@ -91,5 +102,15 @@ Route::middleware('auth')->group(function () {
             Route::put("/{$t}/{id}", [$c, 'update'])->name("{$t}.update");
             Route::delete("/{$t}/{id}", [$c, 'destroy'])->name("{$t}.destroy");
         }
+    });
+
+    Route::prefix('transaksi')->name('transaksi.')->group(function () {
+        Route::get('/order', [TransaksiOrderController::class, 'index'])->name('order.index');
+        Route::get('/order/create', [TransaksiOrderController::class, 'create'])->name('order.create');
+        Route::post('/order', [TransaksiOrderController::class, 'store'])->name('order.store');
+        Route::get('/order/{id}/edit', [TransaksiOrderController::class, 'edit'])->name('order.edit');
+        Route::put('/order/{id}', [TransaksiOrderController::class, 'update'])->name('order.update');
+        Route::delete('/order/{id}', [TransaksiOrderController::class, 'destroy'])->name('order.destroy');
+        Route::get('/order/customer-alamat/{customerId}', [TransaksiOrderController::class, 'customerAlamat'])->name('order.customer-alamat');
     });
 });

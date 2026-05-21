@@ -66,11 +66,20 @@ const sidebarGroups = [
             { label: "Subkategori", href: "/master/subkategori" },
             { label: "Testimoni", href: "/master/testimoni" },
             { label: "Tipe Pembayaran", href: "/master/tipe-pembayaran" },
+            { label: "Users", href: "/master/users" },
             { label: "Vendor", href: "/master/vendor" },
         ],
     },
-    {
-        id: "ui-elements",
+        {
+            id: "transaksi",
+            label: "Transaksi",
+            icon: "lni lni-cart",
+            items: [
+                { label: "Order", href: "/transaksi/order" },
+            ],
+        },
+        {
+            id: "ui-elements",
         label: "UI Elements",
         icon: "lni lni-layout",
         items: [

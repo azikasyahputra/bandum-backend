@@ -24,6 +24,21 @@ abstract protected function label(): string;
         return [];
     }
 
+    protected function relatedTables(): array
+    {
+        return [];
+    }
+
+    protected function primaryKey(): string
+    {
+        return 'iId';
+    }
+
+    protected function useSoftDelete(): bool
+    {
+        return true;
+    }
+
     protected function columns(): array
     {
         $model = $this->model();
@@ -42,7 +57,7 @@ abstract protected function label(): string;
     {
         $labels = [
             'vThumbnails' => 'Thumbnails', 'vTitle' => 'Title', 'vIsi' => 'Isi',
-            'vNama' => 'Nama', 'eTampil' => 'Tampil', 'eTipe' => 'Tipe',
+            'vNama' => 'Nama', 'eTampil' => 'Tampil', 'eTipe' => 'Tipe', 'eTerkecil' => 'Terkecil', 'eTerbesar' => 'Terbesar',
             'vDetail' => 'Detail', 'vLink' => 'Link', 'vNamaLink' => 'Nama Link',
             'vImage' => 'Image', 'vPicture' => 'Picture', 'vIcon' => 'Icon',
             'vKtp' => 'KTP', 'vFilektp' => 'File KTP', 'vNpwp' => 'NPWP',
@@ -66,6 +81,18 @@ abstract protected function label(): string;
             'vNamapic' => 'Nama PIC', 'vKontakpic' => 'Kontak PIC', 'vNotelp' => 'No. Telepon',
             'vNohp' => 'No. HP', 'vGPS' => 'GPS', 'eUtama' => 'Utama',
             'vNamaCustomer' => 'Nama Customer', 'eLunas' => 'Lunas',
+            'nHarga' => 'Harga', 'nHargastrike' => 'Harga Strike', 'nIsi' => 'Isi',
+            'vNoOrder' => 'No. Order', 'iIdAlamat' => 'Alamat', 'vAlamat' => 'Alamat',
+            'vPembayaran' => 'Pembayaran', 'iIdPengiriman' => 'Pengiriman',
+            'vPengiriman' => 'Pengiriman', 'vJenisPengiriman' => 'Jenis Pengiriman',
+            'vCatatan' => 'Catatan', 'nTotal' => 'Total', 'nTotalDiskon' => 'Total Diskon',
+            'nPpn' => 'PPN', 'nBiayaKirim' => 'Biaya Kirim', 'nBiayaPacking' => 'Biaya Packing',
+            'nGrandTotal' => 'Grand Total', 'vSuratJalan' => 'Surat Jalan',
+            'vFakturPajak' => 'Faktur Pajak', 'nDisc' => 'Diskon',
+            'iQty' => 'Qty', 'iQtyKecil' => 'Qty Kecil', 'iQtyOr' => 'Qty OR',
+            'iQtyPo' => 'Qty PO', 'iQtyPl' => 'Qty PL', 'iQtyKirim' => 'Qty Kirim',
+            'iQtyRetur' => 'Qty Retur', 'iIdBarangKemasan' => 'Kemasan',
+            'iIsiKemasanKecil' => 'Isi Kemasan Kecil',
         ];
 
         return $labels[$col] ?? ucwords(str_replace(['_', 'v', 'i', 'e', 'd'], ' ', preg_replace('/^[viepd]/', '', $col)));
@@ -73,7 +100,7 @@ abstract protected function label(): string;
 
     protected function fieldType(string $col): string
     {
-        if (in_array($col, ['eTampil', 'eFeatured', 'eBestselling', 'eVerifikasi', 'isTrustedBuyer', 'eUtama', 'eLunas', 'eStatus'])) {
+        if (in_array($col, ['eTampil', 'eFeatured', 'eBestselling', 'eVerifikasi', 'isTrustedBuyer', 'eUtama', 'eLunas', 'eStatus', 'eTerkecil', 'eTerbesar'])) {
             return 'boolean';
         }
         if (str_starts_with($col, 'd') && $col !== 'd') return 'date';
@@ -127,30 +154,71 @@ abstract protected function label(): string;
         return $selects;
     }
 
+    protected function resolveForeignKeys($paginator): void
+    {
+        $selects = $this->selectOptions();
+        if (empty($selects)) {
+            return;
+        }
+
+        $items = $paginator->items();
+        if (empty($items)) {
+            return;
+        }
+
+        foreach ($selects as $col => $config) {
+            $ids = collect($items)->pluck($col)->unique()->filter()->values();
+            if ($ids->isEmpty()) {
+                continue;
+            }
+
+            $class = $config['model'];
+            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
+
+            foreach ($items as $item) {
+                $fk = $item->getAttribute($col);
+                if ($fk !== null && $related->has($fk)) {
+                    $item->setAttribute($col, $related[$fk]);
+                }
+            }
+        }
+    }
+
     public function index(Request $request): Response
     {
         $modelClass = $this->modelClass();
         $columns = $this->columns();
-        $query = $modelClass::where(function ($q) {
-            $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-        });
+        $query = $modelClass::query();
 
-        foreach ($columns as $col) {
-            $val = $request->query($col);
-            if ($val !== null && $val !== '') {
-                $query->where($col, 'like', "%{$val}%");
-            }
+        if ($this->useSoftDelete()) {
+            $query->where(function ($q) {
+                $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
+            });
         }
 
-        $search = $this->search();
-        foreach ($search as $col) {
+        $selectOpts = $this->selectOptions();
+        $searchCols = array_unique(array_merge($columns, $this->search()));
+
+        foreach ($searchCols as $col) {
             $val = $request->query($col);
-            if ($val !== null && $val !== '') {
+            if ($val === null || $val === '') {
+                continue;
+            }
+
+            if (isset($selectOpts[$col])) {
+                $config = $selectOpts[$col];
+                $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
+                $query->whereIn($col, $relatedIds);
+            } elseif (str_starts_with($col, 'iId')) {
+                $query->where($col, $val);
+            } else {
                 $query->where($col, 'like', "%{$val}%");
             }
         }
 
         $items = $query->paginate(20)->withQueryString();
+
+        $this->resolveForeignKeys($items);
 
         $searchValues = [];
         foreach ($columns as $col) {
@@ -164,6 +232,8 @@ abstract protected function label(): string;
             'columns' => $columns,
             'columnLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'searchValues' => $searchValues,
+            'relatedTables' => $this->relatedTables(),
+            'primaryKey' => $this->primaryKey(),
         ]);
     }
 
@@ -176,6 +246,7 @@ abstract protected function label(): string;
             'fieldLabels' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
             'selects' => $this->selectData(),
+            'primaryKey' => $this->primaryKey(),
         ]);
     }
 
@@ -224,6 +295,7 @@ abstract protected function label(): string;
             'fieldLabels' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
             'selects' => $this->selectData(),
+            'primaryKey' => $this->primaryKey(),
         ]);
     }
 
@@ -265,11 +337,15 @@ abstract protected function label(): string;
         $modelClass = $this->modelClass();
         $item = $modelClass::findOrFail($id);
 
-        $item->update([
-            'eDeleted' => 'ya',
-            'iUpdatedid' => auth()->id() ?? 1,
-            'tUpdated' => now(),
-        ]);
+        if ($this->useSoftDelete()) {
+            $item->update([
+                'eDeleted' => 'ya',
+                'iUpdatedid' => auth()->id() ?? 1,
+                'tUpdated' => now(),
+            ]);
+        } else {
+            $item->delete();
+        }
 
         return redirect("/master/{$this->tableRoute()}")->with('success', 'Data berhasil dihapus.');
     }

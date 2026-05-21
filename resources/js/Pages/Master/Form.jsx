@@ -3,7 +3,7 @@ import { useState } from "react";
 
 export default function Form() {
     const { props } = usePage();
-    const { title, table, fields, fieldLabels, fieldTypes, selects, item } = props;
+    const { title, table, fields, fieldLabels, fieldTypes, selects, item, primaryKey } = props;
 
     const isEdit = !!item;
 
@@ -14,11 +14,12 @@ export default function Form() {
 
     const { data, setData, post, put, processing, errors } = useForm(defaultData);
     const [fileNames, setFileNames] = useState({});
+    const [brokenFiles, setBrokenFiles] = useState({});
 
     const submit = (e) => {
         e.preventDefault();
         if (isEdit) {
-            put(`/master/${table}/${item.iId}`);
+            put(`/master/${table}/${item[primaryKey]}`);
         } else {
             post(`/master/${table}`);
         }
@@ -97,6 +98,8 @@ export default function Form() {
         if (type === "file") {
             const isImage = value && typeof value === "string" && /\.(jpe?g|png)$/i.test(value);
             const selectedName = fileNames[field];
+            const isBroken = brokenFiles[field];
+            const showExisting = value && typeof value === "string" && !selectedName && !isBroken;
             return (
                 <div className="col-12 col-md-6 col-lg-4" key={field}>
                     <div className={`input-style-1 ${hasError ? "has-error" : ""}`}>
@@ -105,19 +108,20 @@ export default function Form() {
                             onClick={() => document.getElementById(`file-${field}`).click()}
                             style={{ cursor: "pointer" }}
                         >
-                            {value && typeof value === "string" && !selectedName ? (
+                            {showExisting && isImage ? (
                                 <div className="mb-10">
-                                    {isImage ? (
-                                        <img
-                                            src={value.startsWith("http") ? value : `/storage/${value}`}
-                                            alt={label}
-                                            style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 6, border: "1px solid #e2e8f0" }}
-                                        />
-                                    ) : (
-                                        <span style={{ fontSize: 13, color: "#3b82f6" }}>
-                                            {value.split("/").pop()}
-                                        </span>
-                                    )}
+                                    <img
+                                        src={value.startsWith("http") ? value : `/storage/${value}`}
+                                        alt={label}
+                                        style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 6, border: "1px solid #e2e8f0" }}
+                                        onError={() => setBrokenFiles((prev) => ({ ...prev, [field]: true }))}
+                                    />
+                                </div>
+                            ) : showExisting ? (
+                                <div className="mb-10">
+                                    <span style={{ fontSize: 13, color: "#3b82f6" }}>
+                                        {value.split("/").pop()}
+                                    </span>
                                 </div>
                             ) : selectedName ? (
                                 <div className="mb-10">
@@ -140,6 +144,24 @@ export default function Form() {
                                     setFileNames((prev) => ({ ...prev, [field]: e.target.files[0].name }));
                                 }
                             }}
+                        />
+                        {hasError && <span className="text-danger" style={{ fontSize: 11 }}>{error}</span>}
+                    </div>
+                </div>
+            );
+        }
+
+        if (type === "password") {
+            return (
+                <div className="col-12 col-md-6 col-lg-4" key={field}>
+                    <div className={`input-style-1 ${hasError ? "has-error" : ""}`}>
+                        <label htmlFor={`field-${field}`}>{label}</label>
+                        <input
+                            id={`field-${field}`}
+                            type="password"
+                            placeholder={isEdit ? "Kosongkan jika tidak diubah" : label}
+                            value={value}
+                            onChange={(e) => setData(field, e.target.value)}
                         />
                         {hasError && <span className="text-danger" style={{ fontSize: 11 }}>{error}</span>}
                     </div>

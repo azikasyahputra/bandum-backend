@@ -31,4 +31,11 @@ class VendorController extends BaseMasterController
         return ['vNama'];
     }
 
+    protected function relatedTables(): array
+    {
+        return [
+            ['route' => 'vendor-alamat', 'label' => 'Alamat', 'foreignKey' => 'iIdVendor'],
+        ];
+    }
+
 }

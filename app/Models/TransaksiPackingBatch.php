@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TransaksiPackingBatch extends Model
 {
+    public $timestamps = false;
     protected $primaryKey = 'iId';
     protected $table = 'transaksi_packing_batch';
 

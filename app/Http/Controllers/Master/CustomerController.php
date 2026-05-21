@@ -31,4 +31,11 @@ class CustomerController extends BaseMasterController
         return ['vNama', 'vEmail'];
     }
 
+    protected function relatedTables(): array
+    {
+        return [
+            ['route' => 'customer-alamat', 'label' => 'Alamat', 'foreignKey' => 'iIdCustomer'],
+        ];
+    }
+
 }
