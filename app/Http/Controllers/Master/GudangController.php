@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class GudangController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Gudang::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_gudang';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'gudang';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Gudang';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama'];
     }

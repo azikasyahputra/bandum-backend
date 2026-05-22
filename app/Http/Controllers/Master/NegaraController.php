@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class NegaraController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Negara::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_negara';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'negara';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Negara';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama', 'vKode'];
     }

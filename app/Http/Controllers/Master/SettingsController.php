@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class SettingsController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Settings::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_settings';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'settings';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Settings';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vIsi'];
     }

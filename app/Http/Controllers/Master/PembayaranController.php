@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class PembayaranController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Pembayaran::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_pembayaran';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'pembayaran';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Pembayaran';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama'];
     }

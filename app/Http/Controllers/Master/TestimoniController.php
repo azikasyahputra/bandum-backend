@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class TestimoniController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Testimoni::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_testimoni';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'testimoni';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Testimoni';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vJudul', 'vReview'];
     }

@@ -1,12 +1,15 @@
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
+import Pagination from "@/Components/Pagination";
+
+const TABLE_COLUMNS = ["vIsi", "eTampil", "eTipe"];
 
 export default function Index() {
     const { props } = usePage();
-    const { title, table, items, columns, columnLabels, searchValues: initialSearch, relatedTables, primaryKey } = props;
+    const { title, table, items, searchValues: initialSearch, relatedTables, primaryKey } = props;
 
     const builds = {};
-    columns.forEach((col) => {
+    TABLE_COLUMNS.forEach((col) => {
         builds[col] = initialSearch?.[col] || "";
     });
     const [inputs, setInputs] = useState(builds);
@@ -18,12 +21,12 @@ export default function Index() {
 
         clearTimeout(timers[col]);
         const params = {};
-        columns.forEach((c) => {
+        TABLE_COLUMNS.forEach((c) => {
             if (updated[c]) params[c] = updated[c];
         });
 
         const timer = setTimeout(() => {
-            router.get(`/master/${table}`, params, {
+            router.get(`/master/settings`, params, {
                 preserveState: true,
                 replace: true,
             });
@@ -33,7 +36,7 @@ export default function Index() {
 
     const handleDelete = (id) => {
         if (confirm("Yakin ingin menghapus data ini?")) {
-            router.delete(`/master/${table}/${id}`);
+            router.delete(`/master/settings/${id}`);
         }
     };
 
@@ -70,21 +73,21 @@ export default function Index() {
 
             <style>{`
                 .compact-table > :not(caption) > * > * {
-                    padding: 6px 10px !important;
+                    padding: 10px 14px !important;
                 }
                 .compact-table th h6 {
-                    font-size: 13px;
-                    margin-bottom: 4px;
+                    font-size: 14px;
+                    margin-bottom: 6px;
                 }
                 .compact-table td p {
-                    font-size: 13px;
+                    font-size: 14px;
                 }
                 .compact-table .search-input {
                     display: block;
                     width: 100%;
-                    min-width: 65px;
-                    padding: 3px 6px 3px 20px;
-                    font-size: 11px;
+                    min-width: 80px;
+                    padding: 5px 8px 5px 24px;
+                    font-size: 13px;
                     border: 1px solid #e2e8f0;
                     border-radius: 5px;
                     background: #f8fafc;
@@ -102,16 +105,16 @@ export default function Index() {
                 }
                 .compact-table .search-icon {
                     position: absolute;
-                    left: 5px;
+                    left: 6px;
                     top: 50%;
                     transform: translateY(-50%);
-                    width: 11px;
-                    height: 11px;
+                    width: 13px;
+                    height: 13px;
                     color: #999;
                     pointer-events: none;
                 }
                 .compact-table .action-btn {
-                    font-size: 14px;
+                    font-size: 20px;
                 }
             `}</style>
 
@@ -121,7 +124,7 @@ export default function Index() {
                         <div className="card-style mb-30">
                             <div className="d-flex justify-content-between align-items-center mb-10" style={{ gap: 12 }}>
                                 <h6 className="mb-0">{title}</h6>
-                                <Link href={`/master/${table}/create`} className="main-btn primary-btn btn-hover">
+                                <Link href={`/master/settings/create`} className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
                                     <i className="lni lni-plus mr-5"></i>
                                     Tambah
                                 </Link>
@@ -132,23 +135,51 @@ export default function Index() {
                                     <thead>
                                         <tr>
                                             <th><h6>#</h6></th>
-                                            {columns.map((col) => (
-                                                <th key={col}>
-                                                    <h6>{columnLabels[col] || col}</h6>
-                                                    <div className="search-wrap">
-                                                        <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-                                                        </svg>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Cari"
-                                                            className="search-input"
-                                                            value={inputs[col] || ""}
-                                                            onChange={(e) => handleSearch(col, e.target.value)}
-                                                        />
-                                                    </div>
-                                                </th>
-                                            ))}
+                                            <th key="vIsi">
+                                                <h6>Isi</h6>
+                                                <div className="search-wrap">
+                                                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                                                    </svg>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Cari"
+                                                        className="search-input"
+                                                        value={inputs["vIsi"] || ""}
+                                                        onChange={(e) => handleSearch("vIsi", e.target.value)}
+                                                    />
+                                                </div>
+                                            </th>
+                                            <th key="eTampil">
+                                                <h6>Tampil</h6>
+                                                <div className="search-wrap">
+                                                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                                                    </svg>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Cari"
+                                                        className="search-input"
+                                                        value={inputs["eTampil"] || ""}
+                                                        onChange={(e) => handleSearch("eTampil", e.target.value)}
+                                                    />
+                                                </div>
+                                            </th>
+                                            <th key="eTipe">
+                                                <h6>Tipe</h6>
+                                                <div className="search-wrap">
+                                                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                                                    </svg>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Cari"
+                                                        className="search-input"
+                                                        value={inputs["eTipe"] || ""}
+                                                        onChange={(e) => handleSearch("eTipe", e.target.value)}
+                                                    />
+                                                </div>
+                                            </th>
                                             <th><h6>Aksi</h6></th>
                                         </tr>
                                     </thead>
@@ -157,9 +188,9 @@ export default function Index() {
                                             items.data.map((item, idx) => (
                                                 <tr key={item[primaryKey]}>
                                                     <td><p>{items.from + idx}</p></td>
-                                                    {columns.map((col) => (
-                                                        <td key={col}><p>{formatValue(col, item[col])}</p></td>
-                                                    ))}
+                                                        <td key="vIsi"><p>{formatValue("vIsi", item["vIsi"])}</p></td>
+                                                        <td key="eTampil"><p>{formatValue("eTampil", item["eTampil"])}</p></td>
+                                                        <td key="eTipe"><p>{formatValue("eTipe", item["eTipe"])}</p></td>
                                                     <td>
                                                         <div className="action d-flex" style={{ gap: 5, alignItems: "center" }}>
                                                             {relatedTables && relatedTables.map((rt) => (
@@ -176,7 +207,14 @@ export default function Index() {
                                                                 <div style={{ width: 1, height: 14, background: "#ddd" }}></div>
                                                             )}
                                                             <Link
-                                                                href={`/master/${table}/${item[primaryKey]}/edit`}
+                                                                href={`/master/settings/${item[primaryKey]}`}
+                                                                className="text-success action-btn"
+                                                                title="Lihat"
+                                                            >
+                                                                <i className="lni lni-eye"></i>
+                                                            </Link>
+                                                            <Link
+                                                                href={`/master/settings/${item[primaryKey]}/edit`}
                                                                 className="text-primary action-btn"
                                                                 title="Edit"
                                                             >
@@ -195,7 +233,7 @@ export default function Index() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={columns.length + 2} style={{ textAlign: "center", padding: "20px 8px" }}>
+                                                <td colSpan={5} style={{ textAlign: "center", padding: "20px 8px" }}>
                                                     <p style={{ color: "#6b7280" }}>Belum ada data.</p>
                                                 </td>
                                             </tr>
@@ -204,35 +242,7 @@ export default function Index() {
                                 </table>
                             </div>
 
-                            {items.data && items.data.length > 0 && items.links && (
-                                <div className="d-flex justify-content-between align-items-center mt-10" style={{ paddingTop: 8 }}>
-                                    <p className="text-sm mb-0" style={{ fontSize: 12 }}>
-                                        {items.from} - {items.to} dari {items.total}
-                                    </p>
-                                    <nav>
-                                        <ul className="pagination mb-0" style={{ margin: 0 }}>
-                                            {items.links.map((link, i) => (
-                                                <li
-                                                    key={i}
-                                                    className={`page-item ${link.active ? "active" : ""} ${!link.url ? "disabled" : ""}`}
-                                                    style={{ margin: 0 }}
-                                                >
-                                                    {link.url ? (
-                                                        <Link
-                                                            href={link.url}
-                                                            className="page-link"
-                                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                                            style={{ padding: "4px 10px", fontSize: 12 }}
-                                                        />
-                                                    ) : (
-                                                        <span className="page-link" dangerouslySetInnerHTML={{ __html: link.label }} style={{ padding: "4px 10px", fontSize: 12 }} />
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </nav>
-                                </div>
-                            )}
+                            <Pagination items={items} />
                         </div>
                     </div>
                 </div>

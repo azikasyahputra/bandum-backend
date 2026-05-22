@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class ArtikelController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Artikel::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_artikel';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'artikel';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Artikel';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vTitle', 'vIsi'];
     }

@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class EkspedisiController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Ekspedisi::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_ekspedisi';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'ekspedisi';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Ekspedisi';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama'];
     }

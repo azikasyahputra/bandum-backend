@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
+import { route } from "ziggy-js";
 
 const asset = (path) => `/assets/${path}`;
 
@@ -217,9 +218,13 @@ export default function Header({ sidebarOpen, toggleSidebar, scrolled }) {
                                     </li>
                                     <li className="divider"></li>
                                     <li>
-                                        <a href="#">
+                                        <button
+                                            type="button"
+                                            className="dropdown-item border-0 bg-transparent"
+                                            onClick={() => router.post(route("logout"))}
+                                        >
                                             <i className="lni lni-exit"></i> Sign Out
-                                        </a>
+                                        </button>
                                     </li>
                                 </ul>
                             </div>

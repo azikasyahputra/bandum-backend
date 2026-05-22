@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class FeaturesController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Features::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_features';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'features';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Features';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vTitle', 'vDesc'];
     }

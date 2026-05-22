@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class BannerController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Banner::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_banner';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'banner';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Banner';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vTitle', 'vDetail'];
     }

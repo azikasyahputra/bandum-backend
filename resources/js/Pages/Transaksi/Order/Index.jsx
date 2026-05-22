@@ -1,5 +1,6 @@
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
+import Pagination from "@/Components/Pagination";
 
 export default function Index() {
     const { props } = usePage();
@@ -42,12 +43,12 @@ export default function Index() {
         <>
             <Head title={title} />
             <style>{`
-                .compact-table > :not(caption) > * > * { padding: 6px 10px !important; }
-                .compact-table th h6 { font-size: 13px; }
-                .compact-table td p { font-size: 13px; }
-                .search-input { display: block; width: 100%; min-width: 65px; padding: 3px 6px; font-size: 11px; border: 1px solid #e2e8f0; border-radius: 5px; background: #f8fafc; outline: none; transition: all 0.15s ease; box-sizing: border-box; }
+                .compact-table > :not(caption) > * > * { padding: 10px 14px !important; }
+                .compact-table th h6 { font-size: 14px; }
+                .compact-table td p { font-size: 14px; }
+                .search-input { display: block; width: 100%; min-width: 80px; padding: 5px 8px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 5px; background: #f8fafc; outline: none; transition: all 0.15s ease; box-sizing: border-box; }
                 .search-input:focus { border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
-                .action-btn { font-size: 14px; }
+                .action-btn { font-size: 20px; }
             `}</style>
 
             <div className="tables-wrapper">
@@ -56,7 +57,7 @@ export default function Index() {
                         <div className="card-style mb-30">
                             <div className="d-flex justify-content-between align-items-center mb-10" style={{ gap: 12 }}>
                                 <h6 className="mb-0">{title}</h6>
-                                <Link href="/transaksi/order/create" className="main-btn primary-btn btn-hover">
+                                <Link href="/transaksi/order/create" className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
                                     <i className="lni lni-plus mr-5"></i> Tambah
                                 </Link>
                             </div>
@@ -122,26 +123,7 @@ export default function Index() {
                                 </table>
                             </div>
 
-                            {items.data && items.data.length > 0 && items.links && (
-                                <div className="d-flex justify-content-between align-items-center mt-10" style={{ paddingTop: 8 }}>
-                                    <p className="text-sm mb-0" style={{ fontSize: 12 }}>
-                                        {items.from} - {items.to} dari {items.total}
-                                    </p>
-                                    <nav>
-                                        <ul className="pagination mb-0" style={{ margin: 0 }}>
-                                            {items.links.map((link, i) => (
-                                                <li key={i} className={`page-item ${link.active ? "active" : ""} ${!link.url ? "disabled" : ""}`} style={{ margin: 0 }}>
-                                                    {link.url ? (
-                                                        <Link href={link.url} className="page-link" dangerouslySetInnerHTML={{ __html: link.label }} style={{ padding: "4px 10px", fontSize: 12 }} />
-                                                    ) : (
-                                                        <span className="page-link" dangerouslySetInnerHTML={{ __html: link.label }} style={{ padding: "4px 10px", fontSize: 12 }} />
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </nav>
-                                </div>
-                            )}
+                            <Pagination items={items} />
                         </div>
                     </div>
                 </div>

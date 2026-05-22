@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class KategoriPerusahaanController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\KategoriPerusahaan::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_kategori_perusahaan';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'kategori-perusahaan';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Kategori Perusahaan';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama'];
     }

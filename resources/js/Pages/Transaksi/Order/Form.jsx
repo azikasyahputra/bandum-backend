@@ -275,7 +275,7 @@ export default function Form() {
                                 </h6>
                                 <Link
                                     href="/transaksi/order"
-                                    className="main-btn primary-btn-outline btn-hover btn-sm-custom"
+                                    className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
                                 >
                                     <i className="lni lni-arrow-left mr-5"></i>{" "}
                                     Kembali
@@ -512,7 +512,7 @@ export default function Form() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="col-12 col-md-6 col-lg-3">
+                                    <div className="col-12 col-md-6 col-lg-4">
                                         <div className="input-style-1">
                                             <label>PPN</label>
                                             <input
@@ -534,7 +534,7 @@ export default function Form() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="col-12 col-md-6 col-lg-3">
+                                    <div className="col-12 col-md-6 col-lg-4">
                                         <div className="select-style-1">
                                             <label>Status</label>
                                             <div className="select-position">
@@ -570,7 +570,7 @@ export default function Form() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="col-12 col-md-6 col-lg-3">
+                                    <div className="col-12 col-md-6 col-lg-4">
                                         <div className="select-style-1">
                                             <label>Lunas</label>
                                             <div className="select-position">
@@ -622,7 +622,7 @@ export default function Form() {
                                     {!readOnly && (
                                         <button
                                             type="button"
-                                            className="main-btn primary-btn btn-hover btn-sm-custom"
+                                            className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
                                             onClick={addDetail}
                                         >
                                             <i className="lni lni-plus mr-5"></i>{" "}
@@ -1089,7 +1089,7 @@ export default function Form() {
                                             <button
                                                 type="button"
                                                 disabled={processing}
-                                                className="main-btn success-btn btn-hover btn-sm-custom"
+                                                className="main-btn success-btn-outline rounded-full btn-hover btn-sm"
                                                 onClick={() => {
                                                     if (
                                                         confirm(
@@ -1109,7 +1109,7 @@ export default function Form() {
                                                 <button
                                                     type="button"
                                                     disabled={processing}
-                                                    className="main-btn warning-btn btn-hover btn-sm-custom"
+                                                    className="main-btn warning-btn-outline rounded-full btn-hover btn-sm"
                                                     onClick={() => {
                                                         if (
                                                             confirm(
@@ -1129,7 +1129,7 @@ export default function Form() {
                                         <button
                                             type="submit"
                                             disabled={processing}
-                                            className="main-btn primary-btn btn-hover btn-sm-custom"
+                                            className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
                                         >
                                             {processing
                                                 ? "Menyimpan..."

@@ -6,32 +6,32 @@ namespace App\Http\Controllers\Master;
 
 class BarangController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Barang::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_barang';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'barang';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Barang';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama', 'vDeskripsisingkat'];
     }
 
-    protected function relatedTables(): array
+    public function relatedTables(): array
     {
         return [
             ['route' => 'barang-kemasan', 'label' => 'Kemasan', 'foreignKey' => 'iIdBarang'],
@@ -39,7 +39,7 @@ class BarangController extends BaseMasterController
         ];
     }
 
-    protected function selectOptions(): array
+    public function selectOptions(): array
     {
         return [
             'iIdBrand' => ['model' => \App\Models\Brand::class, 'value' => 'iId', 'label' => 'vNama'],

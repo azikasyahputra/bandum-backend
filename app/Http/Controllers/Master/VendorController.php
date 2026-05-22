@@ -6,32 +6,32 @@ namespace App\Http\Controllers\Master;
 
 class VendorController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Vendor::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_vendor';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'vendor';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Vendor';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama'];
     }
 
-    protected function relatedTables(): array
+    public function relatedTables(): array
     {
         return [
             ['route' => 'vendor-alamat', 'label' => 'Alamat', 'foreignKey' => 'iIdVendor'],

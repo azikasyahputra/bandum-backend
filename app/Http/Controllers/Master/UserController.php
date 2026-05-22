@@ -8,52 +8,51 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Inertia;
 use Inertia\Response;
 
 class UserController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\User::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'users';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'users';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Users';
     }
 
-    protected function primaryKey(): string
+    public function primaryKey(): string
     {
         return 'id';
     }
 
-    protected function useSoftDelete(): bool
+    public function useSoftDelete(): bool
     {
         return false;
     }
 
-    protected function columns(): array
+    public function columns(): array
     {
         return ['name', 'email', 'role'];
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['name', 'email', 'role'];
     }
 
-    protected function fieldType(string $col): string
+    public function fieldType(string $col): string
     {
         if ($col === 'password') {
             return 'password';
@@ -61,7 +60,7 @@ class UserController extends BaseMasterController
         return parent::fieldType($col);
     }
 
-    protected function columnLabel(string $col): string
+    public function columnLabel(string $col): string
     {
         return match ($col) {
             'name' => 'Name',
@@ -72,14 +71,19 @@ class UserController extends BaseMasterController
         };
     }
 
+    private function userFields(): array
+    {
+        return ['name', 'email', 'role', 'password'];
+    }
+
     public function create(): Response
     {
-        return Inertia('Master/Form', [
-            'title' => 'Tambah ' . $this->label(),
-            'table' => $this->tableRoute(),
-            'fields' => ['name', 'email', 'role', 'password'],
-            'fieldLabels' => collect(['name', 'email', 'role', 'password'])->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
-            'fieldTypes' => collect(['name', 'email', 'role', 'password'])->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
+        return inertia('Master/users/Create', [
+            'title' => 'Tambah Users',
+            'table' => 'users',
+            'fields' => $this->userFields(),
+            'fieldLabels' => collect($this->userFields())->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
+            'fieldTypes' => collect($this->userFields())->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
             'selects' => [],
             'primaryKey' => $this->primaryKey(),
         ]);
@@ -98,20 +102,20 @@ class UserController extends BaseMasterController
 
         \App\Models\User::create($validated);
 
-        return redirect("/master/{$this->tableRoute()}")->with('success', 'Data berhasil ditambahkan.');
+        return redirect('/master/users')->with('success', 'Data berhasil ditambahkan.');
     }
 
     public function edit(int $id): Response
     {
         $item = \App\Models\User::findOrFail($id);
 
-        return Inertia('Master/Form', [
-            'title' => 'Edit ' . $this->label(),
-            'table' => $this->tableRoute(),
+        return inertia('Master/users/Edit', [
+            'title' => 'Edit Users',
+            'table' => 'users',
             'item' => $item,
-            'fields' => ['name', 'email', 'role', 'password'],
-            'fieldLabels' => collect(['name', 'email', 'role', 'password'])->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
-            'fieldTypes' => collect(['name', 'email', 'role', 'password'])->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
+            'fields' => $this->userFields(),
+            'fieldLabels' => collect($this->userFields())->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
+            'fieldTypes' => collect($this->userFields())->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
             'selects' => [],
             'primaryKey' => $this->primaryKey(),
         ]);
@@ -141,6 +145,6 @@ class UserController extends BaseMasterController
 
         $item->update($validated);
 
-        return redirect("/master/{$this->tableRoute()}")->with('success', 'Data berhasil diubah.');
+        return redirect('/master/users')->with('success', 'Data berhasil diubah.');
     }
 }

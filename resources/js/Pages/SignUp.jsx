@@ -41,7 +41,7 @@ export default function SignUp() {
 
                 <div className="col-lg-6">
                     <div className="signup-wrapper">
-                        <div className="form-wrapper">
+                        <div className="form-wrapper form-sm">
                             <h6 className="mb-15">Sign Up Form</h6>
                             <p className="text-sm mb-25">
                                 Start creating the best possible user experience for your customers.
@@ -107,7 +107,7 @@ export default function SignUp() {
                                             <button
                                                 type="submit"
                                                 disabled={processing}
-                                                className="main-btn primary-btn btn-hover w-100 text-center"
+                                                className="main-btn primary-btn-outline rounded-full btn-hover btn-sm w-100 text-center"
                                             >
                                                 {processing ? 'Signing Up...' : 'Sign Up'}
                                             </button>
@@ -119,11 +119,11 @@ export default function SignUp() {
                             <div className="singup-option pt-40">
                                 <p className="text-sm text-medium text-center text-gray">Easy Sign Up With</p>
                                 <div className="button-group pt-40 pb-40 d-flex justify-content-center flex-wrap">
-                                    <button type="button" className="main-btn primary-btn-outline m-2">
+                                    <button type="button" className="main-btn primary-btn-outline rounded-full btn-hover btn-sm m-2">
                                         <i className="lni lni-facebook-fill mr-10"></i>
                                         Facebook
                                     </button>
-                                    <button type="button" className="main-btn danger-btn-outline m-2">
+                                    <button type="button" className="main-btn danger-btn-outline rounded-full btn-hover btn-sm m-2">
                                         <i className="lni lni-google mr-10"></i>
                                         Google
                                     </button>

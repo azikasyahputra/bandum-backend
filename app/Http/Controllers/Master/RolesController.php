@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class RolesController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Roles::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_roles';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'roles';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Roles';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama'];
     }

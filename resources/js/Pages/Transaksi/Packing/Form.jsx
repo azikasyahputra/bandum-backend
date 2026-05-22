@@ -43,7 +43,7 @@ export default function Form() {
                         <div className="card-style mb-30">
                             <div className="d-flex justify-content-between align-items-center mb-10">
                                 <h6 className="mb-0" style={{ fontSize: 15 }}>{title}</h6>
-                                <Link href="/transaksi/packing" className="main-btn primary-btn-outline btn-hover btn-sm-custom">
+                                <Link href="/transaksi/packing" className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
                                     <i className="lni lni-arrow-left mr-5"></i> Kembali
                                 </Link>
                             </div>
@@ -105,19 +105,21 @@ export default function Form() {
                                         <input type="text" value={Number(item.nPpn || 0).toLocaleString()} readOnly />
                                     </div>
                                 </div>
-                                <div className="col-12 col-md-6 col-lg-3">
+                            </div>
+                            <div className="row">
+                                <div className="col-12 col-md-6 col-lg-4">
                                     <div className="input-style-1">
                                         <label>Biaya Kirim</label>
                                         <input type="text" value={Number(item.nBiayaKirim || 0).toLocaleString()} readOnly />
                                     </div>
                                 </div>
-                                <div className="col-12 col-md-6 col-lg-3">
+                                <div className="col-12 col-md-6 col-lg-4">
                                     <div className="input-style-1">
                                         <label>Biaya Packing</label>
                                         <input type="text" value={Number(item.nBiayaPacking || 0).toLocaleString()} readOnly />
                                     </div>
                                 </div>
-                                <div className="col-12 col-md-6 col-lg-3">
+                                <div className="col-12 col-md-6 col-lg-4">
                                     <div className="input-style-1">
                                         <label>Grand Total</label>
                                         <input type="text" value={Number(item.nGrandTotal || 0).toLocaleString()} readOnly style={{ fontWeight: 700, color: "#365CF5" }} />
@@ -170,7 +172,7 @@ export default function Form() {
 
                             {item.eStatus !== "Confirm" && (
                                 <div className="d-flex justify-content-end action-bar" style={{ gap: 8 }}>
-                                    <button type="button" disabled={processing} className="main-btn success-btn btn-hover btn-sm-custom" onClick={handleConfirm}>
+                                    <button type="button" disabled={processing} className="main-btn success-btn-outline rounded-full btn-hover btn-sm" onClick={handleConfirm}>
                                         {processing ? "Memproses..." : "Confirm"}
                                     </button>
                                 </div>

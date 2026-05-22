@@ -6,32 +6,32 @@ namespace App\Http\Controllers\Master;
 
 class KotaController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Kota::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_kota';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'kota';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Kota';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama', 'vIbukota'];
     }
 
-    protected function selectOptions(): array
+    public function selectOptions(): array
     {
         return [
             'iIdProvinsi' => ['model' => \App\Models\Provinsi::class, 'value' => 'iId', 'label' => 'vNama'],

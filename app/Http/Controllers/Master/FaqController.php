@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class FaqController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Faq::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_faq';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'faq';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'FAQ';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vTitle', 'vIsi'];
     }

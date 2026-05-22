@@ -6,32 +6,32 @@ namespace App\Http\Controllers\Master;
 
 class CustomerAlamatController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\CustomerAlamat::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_customer_alamat';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'customer-alamat';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Customer Alamat';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama', 'vAlamat', 'iIdCustomer'];
     }
 
-    protected function selectOptions(): array
+    public function selectOptions(): array
     {
         return [
             'iIdCustomer' => ['model' => \App\Models\Customer::class, 'value' => 'iId', 'label' => 'vNama'],

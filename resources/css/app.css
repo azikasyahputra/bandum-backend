@@ -229,3 +229,90 @@ body {
 .sidebar-nav-wrapper .sidebar-nav ul .nav-item.nav-item-has-children ul.sidebar-submenu.is-collapsed {
     display: none;
 }
+
+.form-sm .input-style-1 {
+    margin-bottom: 12px;
+}
+.form-sm .input-style-1 label {
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+.form-sm .input-style-1 input,
+.form-sm .input-style-1 textarea {
+    padding: 8px 12px;
+    font-size: 13px;
+}
+.form-sm .select-style-1 {
+    margin-bottom: 12px;
+}
+.form-sm .select-style-1 label {
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+.form-sm .select-style-1 .select-position select {
+    padding: 8px 12px;
+    padding-right: 38px;
+    font-size: 13px;
+}
+.form-sm .form-check {
+    padding-top: 0;
+    margin-bottom: 8px;
+}
+.form-sm .form-check-label {
+    font-size: 13px;
+}
+
+.pagination-wrapper {
+    padding-top: 8px;
+}
+
+.pagination-list {
+    gap: 6px;
+}
+
+.pagination-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 2px solid #e5e5e5;
+    border-radius: 30px;
+    background: #fff;
+    color: #365CF5;
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+}
+
+.pagination-link:hover {
+    border-color: #365CF5;
+    background: #f0f4ff;
+}
+
+.pagination-link--active {
+    border-color: #365CF5;
+    background: #365CF5;
+    color: #fff;
+    font-weight: 600;
+    cursor: default;
+}
+
+.pagination-link--active:hover {
+    background: #365CF5;
+    border-color: #365CF5;
+}
+
+.pagination-link--disabled {
+    background: #f8fafc;
+    color: #cbd5e1;
+    cursor: default;
+}
+
+.pagination-link--disabled:hover {
+    border-color: #e5e5e5;
+    background: #f8fafc;
+}

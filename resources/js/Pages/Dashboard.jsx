@@ -1,9 +1,5 @@
 import { Head } from "@inertiajs/react";
-import { useEffect } from "react";
-import Chart from "chart.js/auto";
-import { Calendar } from "fullcalendar";
-import jsVectorMap from "jsvectormap";
-import "jsvectormap/dist/maps/world-merc.js";
+import { useEffect, useRef } from "react";
 
 const dashboardMarkup = String.raw`<div class="row">
   <div class="col-xl-3 col-lg-4 col-sm-6">
@@ -722,7 +718,8 @@ const chartBaseOptions = {
     },
 };
 
-function createCharts() {
+async function createCharts() {
+    const { default: Chart } = await import("chart.js/auto");
     const chart1 = document.getElementById("Chart1");
     const chart2 = document.getElementById("Chart2");
     const chart3 = document.getElementById("Chart3");
@@ -856,7 +853,10 @@ function createCharts() {
     return charts;
 }
 
-function createMap() {
+async function createMap() {
+    const { default: jsVectorMap } = await import("jsvectormap");
+    await import("jsvectormap/dist/maps/world-merc.js");
+
     if (!document.getElementById("map")) {
         return null;
     }
@@ -884,7 +884,8 @@ function createMap() {
     });
 }
 
-function createCalendar() {
+async function createCalendar() {
+    const { Calendar } = await import("fullcalendar");
     const calendarElement = document.getElementById("calendar-mini");
 
     if (!calendarElement) {
@@ -901,15 +902,21 @@ function createCalendar() {
 }
 
 export default function Dashboard() {
+    const cleanup = useRef({ charts: [], map: null, calendar: null });
+
     useEffect(() => {
-        const charts = createCharts();
-        const map = createMap();
-        const calendar = createCalendar();
+        async function init() {
+            cleanup.current.charts = (await createCharts()) || [];
+            cleanup.current.map = await createMap();
+            cleanup.current.calendar = await createCalendar();
+        }
+
+        init().catch(console.error);
 
         return () => {
-            charts.forEach((chart) => chart.destroy());
-            map?.destroy?.();
-            calendar?.destroy?.();
+            cleanup.current.charts.forEach((chart) => chart.destroy());
+            cleanup.current.map?.destroy?.();
+            cleanup.current.calendar?.destroy?.();
         };
     }, []);
 

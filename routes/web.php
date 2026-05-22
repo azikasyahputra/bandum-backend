@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
             Route::get("/{$t}", [$c, 'index'])->name("{$t}.index");
             Route::get("/{$t}/create", [$c, 'create'])->name("{$t}.create");
             Route::post("/{$t}", [$c, 'store'])->name("{$t}.store");
+            Route::get("/{$t}/{id}", [$c, 'show'])->name("{$t}.show");
             Route::get("/{$t}/{id}/edit", [$c, 'edit'])->name("{$t}.edit");
             Route::put("/{$t}/{id}", [$c, 'update'])->name("{$t}.update");
             Route::delete("/{$t}/{id}", [$c, 'destroy'])->name("{$t}.destroy");

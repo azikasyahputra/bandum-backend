@@ -4,42 +4,46 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Master;
 
+use App\Contracts\MasterTableConfig;
 use App\Http\Controllers\Controller;
+use App\Services\MasterDataService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Inertia\Inertia;
 use Inertia\Response;
 
-abstract class BaseMasterController extends Controller
+abstract class BaseMasterController extends Controller implements MasterTableConfig
 {
-abstract protected function modelClass(): string;
-abstract protected function tableName(): string;
-abstract protected function tableRoute(): string;
-abstract protected function label(): string;
+    public function __construct(
+        protected MasterDataService $service,
+    ) {}
 
-    protected function search(): array
+    abstract public function modelClass(): string;
+    abstract public function tableName(): string;
+    abstract public function tableRoute(): string;
+    abstract public function label(): string;
+
+    public function search(): array
     {
         return [];
     }
 
-    protected function relatedTables(): array
+    public function relatedTables(): array
     {
         return [];
     }
 
-    protected function primaryKey(): string
+    public function primaryKey(): string
     {
         return 'iId';
     }
 
-    protected function useSoftDelete(): bool
+    public function useSoftDelete(): bool
     {
         return true;
     }
 
-    protected function columns(): array
+    public function columns(): array
     {
         $model = $this->model();
         $all = $model->getFillable();
@@ -47,13 +51,13 @@ abstract protected function label(): string;
         return array_values(array_filter($all, fn ($c) => !in_array($c, ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'])));
     }
 
-    protected function model()
+    public function model()
     {
         $class = $this->modelClass();
         return new $class;
     }
 
-    protected function columnLabel(string $col): string
+    public function columnLabel(string $col): string
     {
         $labels = [
             'vThumbnails' => 'Thumbnails', 'vTitle' => 'Title', 'vIsi' => 'Isi',
@@ -98,10 +102,10 @@ abstract protected function label(): string;
         return $labels[$col] ?? ucwords(str_replace(['_', 'v', 'i', 'e', 'd'], ' ', preg_replace('/^[viepd]/', '', $col)));
     }
 
-    protected function fieldType(string $col): string
+    public function fieldType(string $col): string
     {
         if (in_array($col, ['eTampil', 'eFeatured', 'eBestselling', 'eVerifikasi', 'isTrustedBuyer', 'eUtama', 'eLunas', 'eStatus', 'eTerkecil', 'eTerbesar'])) {
-            return 'boolean';
+            return 'enum';
         }
         if (str_starts_with($col, 'd') && $col !== 'd') return 'date';
         if (str_starts_with($col, 'iId')) return 'select';
@@ -112,19 +116,19 @@ abstract protected function label(): string;
         return 'text';
     }
 
-    protected function selectOptions(): array
+    public function selectOptions(): array
     {
         return [];
     }
 
-    protected function fileColumns(): array
+    public function fileColumns(): array
     {
         $model = $this->model();
         $all = $model->getFillable();
         return array_values(array_filter($all, fn ($c) => $this->fieldType($c) === 'file'));
     }
 
-    protected function uploadFile(Request $request, string $column): ?string
+    public function uploadFile(Request $request, string $column): ?string
     {
         if (!$request->hasFile($column)) {
             return null;
@@ -136,7 +140,7 @@ abstract protected function label(): string;
         return $path;
     }
 
-    protected function selectData(): array
+    public function selectData(): array
     {
         $fields = $this->columns();
         $selects = [];
@@ -149,204 +153,66 @@ abstract protected function label(): string;
                     $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
                 })->get([$config['value'] . ' as value', $config['label'] . ' as label']);
             }
+
+            $enum = $this->enumOptions($col);
+            if (!empty($enum)) {
+                $selects[$col] = $enum;
+            }
         }
 
         return $selects;
     }
 
-    protected function resolveForeignKeys($paginator): void
+    public function enumOptions(string $col): array
     {
-        $selects = $this->selectOptions();
-        if (empty($selects)) {
-            return;
-        }
+        $enums = [
+            'eTampil' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'eFeatured' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'eBestselling' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'eVerifikasi' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'isTrustedBuyer' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'eUtama' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'eLunas' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'eStatus' => [['value' => 'baru', 'label' => 'Baru'], ['value' => 'proses', 'label' => 'Proses'], ['value' => 'dikirim', 'label' => 'Dikirim'], ['value' => 'selesai', 'label' => 'Selesai'], ['value' => 'batal', 'label' => 'Batal']],
+            'eTerkecil' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'eTerbesar' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+        ];
 
-        $items = $paginator->items();
-        if (empty($items)) {
-            return;
-        }
-
-        foreach ($selects as $col => $config) {
-            $ids = collect($items)->pluck($col)->unique()->filter()->values();
-            if ($ids->isEmpty()) {
-                continue;
-            }
-
-            $class = $config['model'];
-            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
-
-            foreach ($items as $item) {
-                $fk = $item->getAttribute($col);
-                if ($fk !== null && $related->has($fk)) {
-                    $item->setAttribute($col, $related[$fk]);
-                }
-            }
-        }
+        return $enums[$col] ?? [];
     }
 
     public function index(Request $request): Response
     {
-        $modelClass = $this->modelClass();
-        $columns = $this->columns();
-        $query = $modelClass::query();
+        return $this->service->index($this, $request);
+    }
 
-        if ($this->useSoftDelete()) {
-            $query->where(function ($q) {
-                $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-            });
-        }
-
-        $selectOpts = $this->selectOptions();
-        $searchCols = array_unique(array_merge($columns, $this->search()));
-
-        foreach ($searchCols as $col) {
-            $val = $request->query($col);
-            if ($val === null || $val === '') {
-                continue;
-            }
-
-            if (isset($selectOpts[$col])) {
-                $config = $selectOpts[$col];
-                $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
-                $query->whereIn($col, $relatedIds);
-            } elseif (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
-            } else {
-                $query->where($col, 'like', "%{$val}%");
-            }
-        }
-
-        $items = $query->paginate(20)->withQueryString();
-
-        $this->resolveForeignKeys($items);
-
-        $searchValues = [];
-        foreach ($columns as $col) {
-            $searchValues[$col] = $request->query($col, '');
-        }
-
-        return Inertia('Master/Index', [
-            'title' => $this->label(),
-            'table' => $this->tableRoute(),
-            'items' => $items,
-            'columns' => $columns,
-            'columnLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
-            'searchValues' => $searchValues,
-            'relatedTables' => $this->relatedTables(),
-            'primaryKey' => $this->primaryKey(),
-        ]);
+    public function show(int $id): Response
+    {
+        return $this->service->show($this, $id);
     }
 
     public function create(): Response
     {
-        return Inertia('Master/Form', [
-            'title' => 'Tambah ' . $this->label(),
-            'table' => $this->tableRoute(),
-            'fields' => $this->columns(),
-            'fieldLabels' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
-            'fieldTypes' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->selectData(),
-            'primaryKey' => $this->primaryKey(),
-        ]);
+        return $this->service->create($this);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $modelClass = $this->modelClass();
-        $model = new $modelClass;
-        $skip = ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'];
-        $fillable = array_values(array_filter($model->getFillable(), fn ($c) => !in_array($c, $skip)));
-
-        $rules = collect($fillable)->mapWithKeys(fn ($c) => [$c => 'nullable']);
-
-        foreach ($this->fileColumns() as $col) {
-            if ($request->hasFile($col)) {
-                $rules[$col] = 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048';
-            }
-        }
-
-        $validated = Validator::make($request->all(), $rules->toArray())->validated();
-
-        foreach ($this->fileColumns() as $col) {
-            $path = $this->uploadFile($request, $col);
-            if ($path !== null) {
-                $validated[$col] = $path;
-            }
-        }
-
-        $validated['iCreatedid'] = auth()->id() ?? 1;
-        $validated['tCreated'] = now();
-
-        $modelClass::create($validated);
-
-        return redirect("/master/{$this->tableRoute()}")->with('success', 'Data berhasil ditambahkan.');
+        return $this->service->store($this, $request);
     }
 
     public function edit(int $id): Response
     {
-        $modelClass = $this->modelClass();
-        $item = $modelClass::findOrFail($id);
-
-        return Inertia('Master/Form', [
-            'title' => 'Edit ' . $this->label(),
-            'table' => $this->tableRoute(),
-            'item' => $item,
-            'fields' => $this->columns(),
-            'fieldLabels' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
-            'fieldTypes' => collect($this->columns())->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->selectData(),
-            'primaryKey' => $this->primaryKey(),
-        ]);
+        return $this->service->edit($this, $id);
     }
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $modelClass = $this->modelClass();
-        $item = $modelClass::findOrFail($id);
-        $model = new $modelClass;
-        $skip = ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'];
-        $fillable = array_values(array_filter($model->getFillable(), fn ($c) => !in_array($c, $skip)));
-
-        $rules = collect($fillable)->mapWithKeys(fn ($c) => [$c => 'nullable']);
-
-        foreach ($this->fileColumns() as $col) {
-            if ($request->hasFile($col)) {
-                $rules[$col] = 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048';
-            }
-        }
-
-        $validated = Validator::make($request->all(), $rules->toArray())->validated();
-
-        foreach ($this->fileColumns() as $col) {
-            $path = $this->uploadFile($request, $col);
-            if ($path !== null) {
-                $validated[$col] = $path;
-            }
-        }
-
-        $validated['iUpdatedid'] = auth()->id() ?? 1;
-        $validated['tUpdated'] = now();
-
-        $item->update($validated);
-
-        return redirect("/master/{$this->tableRoute()}")->with('success', 'Data berhasil diubah.');
+        return $this->service->update($this, $request, $id);
     }
 
     public function destroy(int $id): RedirectResponse
     {
-        $modelClass = $this->modelClass();
-        $item = $modelClass::findOrFail($id);
-
-        if ($this->useSoftDelete()) {
-            $item->update([
-                'eDeleted' => 'ya',
-                'iUpdatedid' => auth()->id() ?? 1,
-                'tUpdated' => now(),
-            ]);
-        } else {
-            $item->delete();
-        }
-
-        return redirect("/master/{$this->tableRoute()}")->with('success', 'Data berhasil dihapus.');
+        return $this->service->destroy($this, $id);
     }
 }

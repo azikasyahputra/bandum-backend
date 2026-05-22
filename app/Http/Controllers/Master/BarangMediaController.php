@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class BarangMediaController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\BarangMedia::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_barang_media';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'barang-media';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Barang Media';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['eTipe', 'vLink', 'iIdBarang'];
     }

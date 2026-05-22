@@ -6,32 +6,32 @@ namespace App\Http\Controllers\Master;
 
 class VendorAlamatController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\VendorAlamat::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_vendor_alamat';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'vendor-alamat';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Vendor Alamat';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama', 'vAlamat', 'iIdVendor'];
     }
 
-    protected function selectOptions(): array
+    public function selectOptions(): array
     {
         return [
             'iIdVendor' => ['model' => \App\Models\Vendor::class, 'value' => 'iId', 'label' => 'vNama'],

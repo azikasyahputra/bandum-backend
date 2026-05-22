@@ -6,32 +6,32 @@ namespace App\Http\Controllers\Master;
 
 class KelurahanController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\Kelurahan::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_kelurahan';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'kelurahan';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Kelurahan';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama', 'vKodepos'];
     }
 
-    protected function selectOptions(): array
+    public function selectOptions(): array
     {
         return [
             'iIdProvinsi' => ['model' => \App\Models\Provinsi::class, 'value' => 'iId', 'label' => 'vNama'],

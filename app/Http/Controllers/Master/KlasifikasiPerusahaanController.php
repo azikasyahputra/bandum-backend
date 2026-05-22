@@ -6,27 +6,27 @@ namespace App\Http\Controllers\Master;
 
 class KlasifikasiPerusahaanController extends BaseMasterController
 {
-    protected function modelClass(): string
+    public function modelClass(): string
     {
         return \App\Models\KlasifikasiPerusahaan::class;
     }
 
-    protected function tableName(): string
+    public function tableName(): string
     {
         return 'master_klasifikasi_perusahaan';
     }
 
-    protected function tableRoute(): string
+    public function tableRoute(): string
     {
         return 'klasifikasi-perusahaan';
     }
 
-    protected function label(): string
+    public function label(): string
     {
         return 'Klasifikasi Perusahaan';
     }
 
-    protected function search(): array
+    public function search(): array
     {
         return ['vNama'];
     }
