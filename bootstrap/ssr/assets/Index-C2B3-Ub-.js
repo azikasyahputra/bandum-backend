@@ -2,11 +2,12 @@ import { t as Pagination } from "./Pagination-gMUXfdz1.js";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useState } from "react";
-//#region resources/js/Pages/Master/barang-media/Index.jsx
+//#region resources/js/Pages/Master/features/Index.jsx
 var TABLE_COLUMNS = [
-	"iIdBarang",
-	"eTipe",
-	"vLink"
+	"vTitle",
+	"vDesc",
+	"vIcon",
+	"eTampil"
 ];
 function Index() {
 	const { props } = usePage();
@@ -38,7 +39,7 @@ function Index() {
 			if (v) params[k] = v;
 		});
 		const timer = setTimeout(() => {
-			router.get(`/master/barang-media`, params, {
+			router.get(`/master/features`, params, {
 				preserveState: true,
 				replace: true
 			});
@@ -74,7 +75,7 @@ function Index() {
 		}));
 	};
 	const handleDelete = (id) => {
-		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/barang-media/${id}`);
+		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/features/${id}`);
 	};
 	const formatValue = (col, value) => {
 		if (value === null || value === void 0) return "-";
@@ -172,7 +173,7 @@ function Index() {
 									className: "mb-0",
 									children: title
 								}), /* @__PURE__ */ jsxs(Link, {
-									href: `/master/barang-media/create`,
+									href: `/master/features/create`,
 									className: "main-btn primary-btn-outline rounded-full btn-hover btn-sm",
 									children: [/* @__PURE__ */ jsx("i", { className: "lni lni-plus mr-5" }), "Tambah"]
 								})]
@@ -183,7 +184,7 @@ function Index() {
 									className: "table compact-table",
 									children: [/* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "#" }) }),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Barang" }), /* @__PURE__ */ jsxs("div", {
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Title" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -200,11 +201,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["iIdBarang"] || "",
-												onChange: (e) => handleSearch("iIdBarang", e.target.value)
+												value: inputs["vTitle"] || "",
+												onChange: (e) => handleSearch("vTitle", e.target.value)
 											})]
-										})] }, "iIdBarang"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Tipe" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "vTitle"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Deskripsi" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -221,11 +222,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["eTipe"] || "",
-												onChange: (e) => handleSearch("eTipe", e.target.value)
+												value: inputs["vDesc"] || "",
+												onChange: (e) => handleSearch("vDesc", e.target.value)
 											})]
-										})] }, "eTipe"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Link" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "vDesc"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Icon" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -242,40 +243,31 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vLink"] || "",
-												onChange: (e) => handleSearch("vLink", e.target.value)
+												value: inputs["vIcon"] || "",
+												onChange: (e) => handleSearch("vIcon", e.target.value)
 											})]
-										})] }, "vLink"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Dibuat" }), /* @__PURE__ */ jsxs("div", {
-											style: {
-												display: "flex",
-												gap: 4,
-												marginTop: 4
-											},
-											children: [/* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_from,
-												onChange: (e) => handleDateRange("tCreated_from", e.target.value),
-												placeholder: "Dari"
+										})] }, "vIcon"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Tampil" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
 											}), /* @__PURE__ */ jsx("input", {
-												type: "date",
+												type: "text",
+												placeholder: "Cari",
 												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_to,
-												onChange: (e) => handleDateRange("tCreated_to", e.target.value),
-												placeholder: "Sampai"
+												value: inputs["eTampil"] || "",
+												onChange: (e) => handleSearch("eTampil", e.target.value)
 											})]
-										})] }, "vCreator"),
+										})] }, "eTampil"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Diubah" }), /* @__PURE__ */ jsxs("div", {
 											style: {
 												display: "flex",
@@ -309,14 +301,10 @@ function Index() {
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "Aksi" }) })
 									] }) }), /* @__PURE__ */ jsx("tbody", { children: items.data && items.data.length > 0 ? items.data.map((item, idx) => /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: items.from + idx }) }),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdBarang", item["iIdBarang"]) }) }, "iIdBarang"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eTipe", item["eTipe"]) }) }, "eTipe"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vLink", item["vLink"]) }) }, "vLink"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
-											item?.tCreated ? String(item.tCreated) : "-",
-											" / ",
-											item?.vCreator || (item?.iCreatedid ? "-" : "-")
-										] }) }, "vCreator"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vTitle", item["vTitle"]) }) }, "vTitle"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vDesc", item["vDesc"]) }) }, "vDesc"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vIcon", item["vIcon"]) }) }, "vIcon"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eTampil", item["eTampil"]) }) }, "eTampil"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
 											item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-",
 											" / ",
@@ -341,13 +329,13 @@ function Index() {
 													background: "#ddd"
 												} }),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/barang-media/${item[primaryKey]}`,
+													href: `/master/features/${item[primaryKey]}`,
 													className: "text-success action-btn",
 													title: "Lihat",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-eye" })
 												}),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/barang-media/${item[primaryKey]}/edit`,
+													href: `/master/features/${item[primaryKey]}/edit`,
 													className: "text-primary action-btn",
 													title: "Edit",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-pencil-alt" })

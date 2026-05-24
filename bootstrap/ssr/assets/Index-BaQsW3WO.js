@@ -2,11 +2,15 @@ import { t as Pagination } from "./Pagination-gMUXfdz1.js";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useState } from "react";
-//#region resources/js/Pages/Master/settings/Index.jsx
+//#region resources/js/Pages/Master/barang/Index.jsx
 var TABLE_COLUMNS = [
-	"vIsi",
-	"eTampil",
-	"eTipe"
+	"vNama",
+	"iIdBrand",
+	"iIdKategori",
+	"iIdSubkategori",
+	"vDeskripsisingkat",
+	"eBestselling",
+	"vDeskripsidetail"
 ];
 function Index() {
 	const { props } = usePage();
@@ -38,7 +42,7 @@ function Index() {
 			if (v) params[k] = v;
 		});
 		const timer = setTimeout(() => {
-			router.get(`/master/settings`, params, {
+			router.get(`/master/barang`, params, {
 				preserveState: true,
 				replace: true
 			});
@@ -74,7 +78,7 @@ function Index() {
 		}));
 	};
 	const handleDelete = (id) => {
-		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/settings/${id}`);
+		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/barang/${id}`);
 	};
 	const formatValue = (col, value) => {
 		if (value === null || value === void 0) return "-";
@@ -172,7 +176,7 @@ function Index() {
 									className: "mb-0",
 									children: title
 								}), /* @__PURE__ */ jsxs(Link, {
-									href: `/master/settings/create`,
+									href: `/master/barang/create`,
 									className: "main-btn primary-btn-outline rounded-full btn-hover btn-sm",
 									children: [/* @__PURE__ */ jsx("i", { className: "lni lni-plus mr-5" }), "Tambah"]
 								})]
@@ -183,7 +187,7 @@ function Index() {
 									className: "table compact-table",
 									children: [/* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "#" }) }),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Isi" }), /* @__PURE__ */ jsxs("div", {
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Nama" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -200,11 +204,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vIsi"] || "",
-												onChange: (e) => handleSearch("vIsi", e.target.value)
+												value: inputs["vNama"] || "",
+												onChange: (e) => handleSearch("vNama", e.target.value)
 											})]
-										})] }, "vIsi"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Tampil" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "vNama"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Brand" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -221,11 +225,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["eTampil"] || "",
-												onChange: (e) => handleSearch("eTampil", e.target.value)
+												value: inputs["iIdBrand"] || "",
+												onChange: (e) => handleSearch("iIdBrand", e.target.value)
 											})]
-										})] }, "eTampil"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Tipe" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "iIdBrand"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Kategori" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -242,40 +246,94 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["eTipe"] || "",
-												onChange: (e) => handleSearch("eTipe", e.target.value)
+												value: inputs["iIdKategori"] || "",
+												onChange: (e) => handleSearch("iIdKategori", e.target.value)
 											})]
-										})] }, "eTipe"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Dibuat" }), /* @__PURE__ */ jsxs("div", {
-											style: {
-												display: "flex",
-												gap: 4,
-												marginTop: 4
-											},
-											children: [/* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_from,
-												onChange: (e) => handleDateRange("tCreated_from", e.target.value),
-												placeholder: "Dari"
+										})] }, "iIdKategori"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Subkategori" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
 											}), /* @__PURE__ */ jsx("input", {
-												type: "date",
+												type: "text",
+												placeholder: "Cari",
 												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_to,
-												onChange: (e) => handleDateRange("tCreated_to", e.target.value),
-												placeholder: "Sampai"
+												value: inputs["iIdSubkategori"] || "",
+												onChange: (e) => handleSearch("iIdSubkategori", e.target.value)
 											})]
-										})] }, "vCreator"),
+										})] }, "iIdSubkategori"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Deskripsi Singkat" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["vDeskripsisingkat"] || "",
+												onChange: (e) => handleSearch("vDeskripsisingkat", e.target.value)
+											})]
+										})] }, "vDeskripsisingkat"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Best Selling" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["eBestselling"] || "",
+												onChange: (e) => handleSearch("eBestselling", e.target.value)
+											})]
+										})] }, "eBestselling"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Deskripsi Detail" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["vDeskripsidetail"] || "",
+												onChange: (e) => handleSearch("vDeskripsidetail", e.target.value)
+											})]
+										})] }, "vDeskripsidetail"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Diubah" }), /* @__PURE__ */ jsxs("div", {
 											style: {
 												display: "flex",
@@ -309,14 +367,13 @@ function Index() {
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "Aksi" }) })
 									] }) }), /* @__PURE__ */ jsx("tbody", { children: items.data && items.data.length > 0 ? items.data.map((item, idx) => /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: items.from + idx }) }),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vIsi", item["vIsi"]) }) }, "vIsi"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eTampil", item["eTampil"]) }) }, "eTampil"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eTipe", item["eTipe"]) }) }, "eTipe"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
-											item?.tCreated ? String(item.tCreated) : "-",
-											" / ",
-											item?.vCreator || (item?.iCreatedid ? "-" : "-")
-										] }) }, "vCreator"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNama", item["vNama"]) }) }, "vNama"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdBrand", item["iIdBrand"]) }) }, "iIdBrand"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdKategori", item["iIdKategori"]) }) }, "iIdKategori"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdSubkategori", item["iIdSubkategori"]) }) }, "iIdSubkategori"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vDeskripsisingkat", item["vDeskripsisingkat"]) }) }, "vDeskripsisingkat"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eBestselling", item["eBestselling"]) }) }, "eBestselling"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vDeskripsidetail", item["vDeskripsidetail"]) }) }, "vDeskripsidetail"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
 											item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-",
 											" / ",
@@ -341,13 +398,13 @@ function Index() {
 													background: "#ddd"
 												} }),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/settings/${item[primaryKey]}`,
+													href: `/master/barang/${item[primaryKey]}`,
 													className: "text-success action-btn",
 													title: "Lihat",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-eye" })
 												}),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/settings/${item[primaryKey]}/edit`,
+													href: `/master/barang/${item[primaryKey]}/edit`,
 													className: "text-primary action-btn",
 													title: "Edit",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-pencil-alt" })
@@ -361,7 +418,7 @@ function Index() {
 											]
 										}) })
 									] }, item[primaryKey])) : /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", {
-										colSpan: 7,
+										colSpan: 10,
 										style: {
 											textAlign: "center",
 											padding: "20px 8px"

@@ -2,24 +2,25 @@ import { t as Pagination } from "./Pagination-gMUXfdz1.js";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useState } from "react";
-//#region resources/js/Pages/Master/vendor/Index.jsx
+//#region resources/js/Pages/Master/customer/Index.jsx
 var TABLE_COLUMNS = [
 	"vNama",
-	"vProfilepic",
+	"vEmail",
+	"iIdUser",
+	"iIdJenisperusahaan",
+	"iIdKlasifikasiperusahaan",
 	"eTipe",
-	"vNamadirektur",
-	"dTanggalberdiri",
-	"eJumlahkaryawan",
-	"vOfficephone",
-	"vNamapic",
-	"vKontakpic",
-	"iIdAlamatutama",
+	"vProfilepic",
+	"vKtp",
+	"vFilektp",
+	"vNpwp",
+	"vFilenpwp",
 	"vSiup",
 	"vFilesiup",
 	"vFileaktapendirian",
 	"vFiledomisiliperusahaan",
 	"eVerifikasi",
-	"vDeskripsi"
+	"isTrustedBuyer"
 ];
 function Index() {
 	const { props } = usePage();
@@ -51,7 +52,7 @@ function Index() {
 			if (v) params[k] = v;
 		});
 		const timer = setTimeout(() => {
-			router.get(`/master/vendor`, params, {
+			router.get(`/master/customer`, params, {
 				preserveState: true,
 				replace: true
 			});
@@ -87,7 +88,7 @@ function Index() {
 		}));
 	};
 	const handleDelete = (id) => {
-		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/vendor/${id}`);
+		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/customer/${id}`);
 	};
 	const formatValue = (col, value) => {
 		if (value === null || value === void 0) return "-";
@@ -185,7 +186,7 @@ function Index() {
 									className: "mb-0",
 									children: title
 								}), /* @__PURE__ */ jsxs(Link, {
-									href: `/master/vendor/create`,
+									href: `/master/customer/create`,
 									className: "main-btn primary-btn-outline rounded-full btn-hover btn-sm",
 									children: [/* @__PURE__ */ jsx("i", { className: "lni lni-plus mr-5" }), "Tambah"]
 								})]
@@ -217,7 +218,7 @@ function Index() {
 												onChange: (e) => handleSearch("vNama", e.target.value)
 											})]
 										})] }, "vNama"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Foto Profil" }), /* @__PURE__ */ jsxs("div", {
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Email" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -234,10 +235,73 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vProfilepic"] || "",
-												onChange: (e) => handleSearch("vProfilepic", e.target.value)
+												value: inputs["vEmail"] || "",
+												onChange: (e) => handleSearch("vEmail", e.target.value)
 											})]
-										})] }, "vProfilepic"),
+										})] }, "vEmail"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "User" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["iIdUser"] || "",
+												onChange: (e) => handleSearch("iIdUser", e.target.value)
+											})]
+										})] }, "iIdUser"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Jenis Perusahaan" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["iIdJenisperusahaan"] || "",
+												onChange: (e) => handleSearch("iIdJenisperusahaan", e.target.value)
+											})]
+										})] }, "iIdJenisperusahaan"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Klasifikasi Perusahaan" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["iIdKlasifikasiperusahaan"] || "",
+												onChange: (e) => handleSearch("iIdKlasifikasiperusahaan", e.target.value)
+											})]
+										})] }, "iIdKlasifikasiperusahaan"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Tipe" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
@@ -259,7 +323,7 @@ function Index() {
 												onChange: (e) => handleSearch("eTipe", e.target.value)
 											})]
 										})] }, "eTipe"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Nama Direktur" }), /* @__PURE__ */ jsxs("div", {
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Foto Profil" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -276,11 +340,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vNamadirektur"] || "",
-												onChange: (e) => handleSearch("vNamadirektur", e.target.value)
+												value: inputs["vProfilepic"] || "",
+												onChange: (e) => handleSearch("vProfilepic", e.target.value)
 											})]
-										})] }, "vNamadirektur"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Tanggal Berdiri" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "vProfilepic"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "KTP" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -297,11 +361,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["dTanggalberdiri"] || "",
-												onChange: (e) => handleSearch("dTanggalberdiri", e.target.value)
+												value: inputs["vKtp"] || "",
+												onChange: (e) => handleSearch("vKtp", e.target.value)
 											})]
-										})] }, "dTanggalberdiri"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Jumlah Karyawan" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "vKtp"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "File KTP" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -318,11 +382,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["eJumlahkaryawan"] || "",
-												onChange: (e) => handleSearch("eJumlahkaryawan", e.target.value)
+												value: inputs["vFilektp"] || "",
+												onChange: (e) => handleSearch("vFilektp", e.target.value)
 											})]
-										})] }, "eJumlahkaryawan"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Telepon Kantor" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "vFilektp"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "NPWP" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -339,11 +403,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vOfficephone"] || "",
-												onChange: (e) => handleSearch("vOfficephone", e.target.value)
+												value: inputs["vNpwp"] || "",
+												onChange: (e) => handleSearch("vNpwp", e.target.value)
 											})]
-										})] }, "vOfficephone"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Nama PIC" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "vNpwp"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "File NPWP" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -360,52 +424,10 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vNamapic"] || "",
-												onChange: (e) => handleSearch("vNamapic", e.target.value)
+												value: inputs["vFilenpwp"] || "",
+												onChange: (e) => handleSearch("vFilenpwp", e.target.value)
 											})]
-										})] }, "vNamapic"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Kontak PIC" }), /* @__PURE__ */ jsxs("div", {
-											className: "search-wrap",
-											children: [/* @__PURE__ */ jsx("svg", {
-												className: "search-icon",
-												fill: "none",
-												stroke: "currentColor",
-												viewBox: "0 0 24 24",
-												strokeWidth: "2",
-												children: /* @__PURE__ */ jsx("path", {
-													strokeLinecap: "round",
-													strokeLinejoin: "round",
-													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
-												})
-											}), /* @__PURE__ */ jsx("input", {
-												type: "text",
-												placeholder: "Cari",
-												className: "search-input",
-												value: inputs["vKontakpic"] || "",
-												onChange: (e) => handleSearch("vKontakpic", e.target.value)
-											})]
-										})] }, "vKontakpic"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Alamat Utama" }), /* @__PURE__ */ jsxs("div", {
-											className: "search-wrap",
-											children: [/* @__PURE__ */ jsx("svg", {
-												className: "search-icon",
-												fill: "none",
-												stroke: "currentColor",
-												viewBox: "0 0 24 24",
-												strokeWidth: "2",
-												children: /* @__PURE__ */ jsx("path", {
-													strokeLinecap: "round",
-													strokeLinejoin: "round",
-													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
-												})
-											}), /* @__PURE__ */ jsx("input", {
-												type: "text",
-												placeholder: "Cari",
-												className: "search-input",
-												value: inputs["iIdAlamatutama"] || "",
-												onChange: (e) => handleSearch("iIdAlamatutama", e.target.value)
-											})]
-										})] }, "iIdAlamatutama"),
+										})] }, "vFilenpwp"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "SIUP" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
@@ -511,7 +533,7 @@ function Index() {
 												onChange: (e) => handleSearch("eVerifikasi", e.target.value)
 											})]
 										})] }, "eVerifikasi"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Deskripsi" }), /* @__PURE__ */ jsxs("div", {
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Trusted Buyer" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -528,40 +550,10 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vDeskripsi"] || "",
-												onChange: (e) => handleSearch("vDeskripsi", e.target.value)
+												value: inputs["isTrustedBuyer"] || "",
+												onChange: (e) => handleSearch("isTrustedBuyer", e.target.value)
 											})]
-										})] }, "vDeskripsi"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Dibuat" }), /* @__PURE__ */ jsxs("div", {
-											style: {
-												display: "flex",
-												gap: 4,
-												marginTop: 4
-											},
-											children: [/* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_from,
-												onChange: (e) => handleDateRange("tCreated_from", e.target.value),
-												placeholder: "Dari"
-											}), /* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_to,
-												onChange: (e) => handleDateRange("tCreated_to", e.target.value),
-												placeholder: "Sampai"
-											})]
-										})] }, "vCreator"),
+										})] }, "isTrustedBuyer"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Diubah" }), /* @__PURE__ */ jsxs("div", {
 											style: {
 												display: "flex",
@@ -596,26 +588,22 @@ function Index() {
 									] }) }), /* @__PURE__ */ jsx("tbody", { children: items.data && items.data.length > 0 ? items.data.map((item, idx) => /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: items.from + idx }) }),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNama", item["vNama"]) }) }, "vNama"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vProfilepic", item["vProfilepic"]) }) }, "vProfilepic"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vEmail", item["vEmail"]) }) }, "vEmail"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdUser", item["iIdUser"]) }) }, "iIdUser"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdJenisperusahaan", item["iIdJenisperusahaan"]) }) }, "iIdJenisperusahaan"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdKlasifikasiperusahaan", item["iIdKlasifikasiperusahaan"]) }) }, "iIdKlasifikasiperusahaan"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eTipe", item["eTipe"]) }) }, "eTipe"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNamadirektur", item["vNamadirektur"]) }) }, "vNamadirektur"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("dTanggalberdiri", item["dTanggalberdiri"]) }) }, "dTanggalberdiri"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eJumlahkaryawan", item["eJumlahkaryawan"]) }) }, "eJumlahkaryawan"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vOfficephone", item["vOfficephone"]) }) }, "vOfficephone"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNamapic", item["vNamapic"]) }) }, "vNamapic"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vKontakpic", item["vKontakpic"]) }) }, "vKontakpic"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdAlamatutama", item["iIdAlamatutama"]) }) }, "iIdAlamatutama"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vProfilepic", item["vProfilepic"]) }) }, "vProfilepic"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vKtp", item["vKtp"]) }) }, "vKtp"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vFilektp", item["vFilektp"]) }) }, "vFilektp"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNpwp", item["vNpwp"]) }) }, "vNpwp"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vFilenpwp", item["vFilenpwp"]) }) }, "vFilenpwp"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vSiup", item["vSiup"]) }) }, "vSiup"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vFilesiup", item["vFilesiup"]) }) }, "vFilesiup"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vFileaktapendirian", item["vFileaktapendirian"]) }) }, "vFileaktapendirian"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vFiledomisiliperusahaan", item["vFiledomisiliperusahaan"]) }) }, "vFiledomisiliperusahaan"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("eVerifikasi", item["eVerifikasi"]) }) }, "eVerifikasi"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vDeskripsi", item["vDeskripsi"]) }) }, "vDeskripsi"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
-											item?.tCreated ? String(item.tCreated) : "-",
-											" / ",
-											item?.vCreator || (item?.iCreatedid ? "-" : "-")
-										] }) }, "vCreator"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("isTrustedBuyer", item["isTrustedBuyer"]) }) }, "isTrustedBuyer"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
 											item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-",
 											" / ",
@@ -640,13 +628,13 @@ function Index() {
 													background: "#ddd"
 												} }),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/vendor/${item[primaryKey]}`,
+													href: `/master/customer/${item[primaryKey]}`,
 													className: "text-success action-btn",
 													title: "Lihat",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-eye" })
 												}),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/vendor/${item[primaryKey]}/edit`,
+													href: `/master/customer/${item[primaryKey]}/edit`,
 													className: "text-primary action-btn",
 													title: "Edit",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-pencil-alt" })

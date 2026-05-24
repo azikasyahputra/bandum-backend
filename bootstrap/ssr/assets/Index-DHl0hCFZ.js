@@ -2,8 +2,14 @@ import { t as Pagination } from "./Pagination-gMUXfdz1.js";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useState } from "react";
-//#region resources/js/Pages/Master/roles/Index.jsx
-var TABLE_COLUMNS = ["vNama"];
+//#region resources/js/Pages/Master/kelurahan/Index.jsx
+var TABLE_COLUMNS = [
+	"iIdProvinsi",
+	"iIdKota",
+	"iIdKecamatan",
+	"vNama",
+	"vKodepos"
+];
 function Index() {
 	const { props } = usePage();
 	const { title, table, items, searchValues: initialSearch, relatedTables, primaryKey } = props;
@@ -34,7 +40,7 @@ function Index() {
 			if (v) params[k] = v;
 		});
 		const timer = setTimeout(() => {
-			router.get(`/master/roles`, params, {
+			router.get(`/master/kelurahan`, params, {
 				preserveState: true,
 				replace: true
 			});
@@ -70,7 +76,7 @@ function Index() {
 		}));
 	};
 	const handleDelete = (id) => {
-		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/roles/${id}`);
+		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/kelurahan/${id}`);
 	};
 	const formatValue = (col, value) => {
 		if (value === null || value === void 0) return "-";
@@ -168,7 +174,7 @@ function Index() {
 									className: "mb-0",
 									children: title
 								}), /* @__PURE__ */ jsxs(Link, {
-									href: `/master/roles/create`,
+									href: `/master/kelurahan/create`,
 									className: "main-btn primary-btn-outline rounded-full btn-hover btn-sm",
 									children: [/* @__PURE__ */ jsx("i", { className: "lni lni-plus mr-5" }), "Tambah"]
 								})]
@@ -179,6 +185,69 @@ function Index() {
 									className: "table compact-table",
 									children: [/* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "#" }) }),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Provinsi" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["iIdProvinsi"] || "",
+												onChange: (e) => handleSearch("iIdProvinsi", e.target.value)
+											})]
+										})] }, "iIdProvinsi"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Kota" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["iIdKota"] || "",
+												onChange: (e) => handleSearch("iIdKota", e.target.value)
+											})]
+										})] }, "iIdKota"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Kecamatan" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
+											}), /* @__PURE__ */ jsx("input", {
+												type: "text",
+												placeholder: "Cari",
+												className: "search-input",
+												value: inputs["iIdKecamatan"] || "",
+												onChange: (e) => handleSearch("iIdKecamatan", e.target.value)
+											})]
+										})] }, "iIdKecamatan"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Nama" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
@@ -200,36 +269,27 @@ function Index() {
 												onChange: (e) => handleSearch("vNama", e.target.value)
 											})]
 										})] }, "vNama"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Dibuat" }), /* @__PURE__ */ jsxs("div", {
-											style: {
-												display: "flex",
-												gap: 4,
-												marginTop: 4
-											},
-											children: [/* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_from,
-												onChange: (e) => handleDateRange("tCreated_from", e.target.value),
-												placeholder: "Dari"
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Kode Pos" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
 											}), /* @__PURE__ */ jsx("input", {
-												type: "date",
+												type: "text",
+												placeholder: "Cari",
 												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_to,
-												onChange: (e) => handleDateRange("tCreated_to", e.target.value),
-												placeholder: "Sampai"
+												value: inputs["vKodepos"] || "",
+												onChange: (e) => handleSearch("vKodepos", e.target.value)
 											})]
-										})] }, "vCreator"),
+										})] }, "vKodepos"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Diubah" }), /* @__PURE__ */ jsxs("div", {
 											style: {
 												display: "flex",
@@ -263,12 +323,11 @@ function Index() {
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "Aksi" }) })
 									] }) }), /* @__PURE__ */ jsx("tbody", { children: items.data && items.data.length > 0 ? items.data.map((item, idx) => /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: items.from + idx }) }),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdProvinsi", item["iIdProvinsi"]) }) }, "iIdProvinsi"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdKota", item["iIdKota"]) }) }, "iIdKota"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdKecamatan", item["iIdKecamatan"]) }) }, "iIdKecamatan"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNama", item["vNama"]) }) }, "vNama"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
-											item?.tCreated ? String(item.tCreated) : "-",
-											" / ",
-											item?.vCreator || (item?.iCreatedid ? "-" : "-")
-										] }) }, "vCreator"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vKodepos", item["vKodepos"]) }) }, "vKodepos"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
 											item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-",
 											" / ",
@@ -293,13 +352,13 @@ function Index() {
 													background: "#ddd"
 												} }),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/roles/${item[primaryKey]}`,
+													href: `/master/kelurahan/${item[primaryKey]}`,
 													className: "text-success action-btn",
 													title: "Lihat",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-eye" })
 												}),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/roles/${item[primaryKey]}/edit`,
+													href: `/master/kelurahan/${item[primaryKey]}/edit`,
 													className: "text-primary action-btn",
 													title: "Edit",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-pencil-alt" })
@@ -313,7 +372,7 @@ function Index() {
 											]
 										}) })
 									] }, item[primaryKey])) : /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", {
-										colSpan: 5,
+										colSpan: 8,
 										style: {
 											textAlign: "center",
 											padding: "20px 8px"

@@ -270,21 +270,6 @@ export default function Index() {
                                                     />
                                                 </div>
                                             </th>
-                                            <th key="vCreator">
-                                                <h6>Dibuat</h6>
-                                                <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
-                                                        value={dateRanges.tCreated_from}
-                                                        onChange={(e) => handleDateRange("tCreated_from", e.target.value)}
-                                                        placeholder="Dari"
-                                                    />
-                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
-                                                        value={dateRanges.tCreated_to}
-                                                        onChange={(e) => handleDateRange("tCreated_to", e.target.value)}
-                                                        placeholder="Sampai"
-                                                    />
-                                                </div>
-                                            </th>
                                             <th key="tUpdated">
                                                 <h6>Diubah</h6>
                                                 <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
@@ -315,7 +300,6 @@ export default function Index() {
                                                         <td key="vDeskripsisingkat"><p>{formatValue("vDeskripsisingkat", item["vDeskripsisingkat"])}</p></td>
                                                         <td key="eBestselling"><p>{formatValue("eBestselling", item["eBestselling"])}</p></td>
                                                         <td key="vDeskripsidetail"><p>{formatValue("vDeskripsidetail", item["vDeskripsidetail"])}</p></td>
-                                                    <td key="vCreator"><p>{item?.tCreated ? String(item.tCreated) : "-"} / {item?.vCreator || (item?.iCreatedid ? "-" : "-")}</p></td>
                                                         <td key="tUpdated"><p>{item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-"} / {item?.vUpdater || (item?.iUpdatedid ? "-" : "-")}</p></td>
                                                         <td>
                                                         <div className="action d-flex" style={{ gap: 5, alignItems: "center" }}>
@@ -359,7 +343,7 @@ export default function Index() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={11} style={{ textAlign: "center", padding: "20px 8px" }}>
+                                                <td colSpan={10} style={{ textAlign: "center", padding: "20px 8px" }}>
                                                     <p style={{ color: "#6b7280" }}>Belum ada data.</p>
                                                 </td>
                                             </tr>

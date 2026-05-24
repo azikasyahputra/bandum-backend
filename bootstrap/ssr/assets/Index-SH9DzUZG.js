@@ -246,36 +246,6 @@ function Index() {
 												onChange: (e) => handleSearch("vNama", e.target.value)
 											})]
 										})] }, "vNama"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Dibuat" }), /* @__PURE__ */ jsxs("div", {
-											style: {
-												display: "flex",
-												gap: 4,
-												marginTop: 4
-											},
-											children: [/* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_from,
-												onChange: (e) => handleDateRange("tCreated_from", e.target.value),
-												placeholder: "Dari"
-											}), /* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_to,
-												onChange: (e) => handleDateRange("tCreated_to", e.target.value),
-												placeholder: "Sampai"
-											})]
-										})] }, "vCreator"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Diubah" }), /* @__PURE__ */ jsxs("div", {
 											style: {
 												display: "flex",
@@ -312,11 +282,6 @@ function Index() {
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdProvinsi", item["iIdProvinsi"]) }) }, "iIdProvinsi"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdKota", item["iIdKota"]) }) }, "iIdKota"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNama", item["vNama"]) }) }, "vNama"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
-											item?.tCreated ? String(item.tCreated) : "-",
-											" / ",
-											item?.vCreator || (item?.iCreatedid ? "-" : "-")
-										] }) }, "vCreator"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
 											item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-",
 											" / ",
@@ -361,7 +326,7 @@ function Index() {
 											]
 										}) })
 									] }, item[primaryKey])) : /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", {
-										colSpan: 7,
+										colSpan: 6,
 										style: {
 											textAlign: "center",
 											padding: "20px 8px"

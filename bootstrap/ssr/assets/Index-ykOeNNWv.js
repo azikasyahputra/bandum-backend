@@ -2,8 +2,12 @@ import { t as Pagination } from "./Pagination-gMUXfdz1.js";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useState } from "react";
-//#region resources/js/Pages/Master/subkategori/Index.jsx
-var TABLE_COLUMNS = ["iIdKategori", "vNama"];
+//#region resources/js/Pages/Master/users/Index.jsx
+var TABLE_COLUMNS = [
+	"name",
+	"email",
+	"role"
+];
 function Index() {
 	const { props } = usePage();
 	const { title, table, items, searchValues: initialSearch, relatedTables, primaryKey } = props;
@@ -34,7 +38,7 @@ function Index() {
 			if (v) params[k] = v;
 		});
 		const timer = setTimeout(() => {
-			router.get(`/master/subkategori`, params, {
+			router.get(`/master/users`, params, {
 				preserveState: true,
 				replace: true
 			});
@@ -70,7 +74,7 @@ function Index() {
 		}));
 	};
 	const handleDelete = (id) => {
-		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/subkategori/${id}`);
+		if (confirm("Yakin ingin menghapus data ini?")) router.delete(`/master/users/${id}`);
 	};
 	const formatValue = (col, value) => {
 		if (value === null || value === void 0) return "-";
@@ -168,7 +172,7 @@ function Index() {
 									className: "mb-0",
 									children: title
 								}), /* @__PURE__ */ jsxs(Link, {
-									href: `/master/subkategori/create`,
+									href: `/master/users/create`,
 									className: "main-btn primary-btn-outline rounded-full btn-hover btn-sm",
 									children: [/* @__PURE__ */ jsx("i", { className: "lni lni-plus mr-5" }), "Tambah"]
 								})]
@@ -179,7 +183,7 @@ function Index() {
 									className: "table compact-table",
 									children: [/* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "#" }) }),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Kategori" }), /* @__PURE__ */ jsxs("div", {
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Name" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -196,11 +200,11 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["iIdKategori"] || "",
-												onChange: (e) => handleSearch("iIdKategori", e.target.value)
+												value: inputs["name"] || "",
+												onChange: (e) => handleSearch("name", e.target.value)
 											})]
-										})] }, "iIdKategori"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Nama" }), /* @__PURE__ */ jsxs("div", {
+										})] }, "name"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Email" }), /* @__PURE__ */ jsxs("div", {
 											className: "search-wrap",
 											children: [/* @__PURE__ */ jsx("svg", {
 												className: "search-icon",
@@ -217,40 +221,31 @@ function Index() {
 												type: "text",
 												placeholder: "Cari",
 												className: "search-input",
-												value: inputs["vNama"] || "",
-												onChange: (e) => handleSearch("vNama", e.target.value)
+												value: inputs["email"] || "",
+												onChange: (e) => handleSearch("email", e.target.value)
 											})]
-										})] }, "vNama"),
-										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Dibuat" }), /* @__PURE__ */ jsxs("div", {
-											style: {
-												display: "flex",
-												gap: 4,
-												marginTop: 4
-											},
-											children: [/* @__PURE__ */ jsx("input", {
-												type: "date",
-												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_from,
-												onChange: (e) => handleDateRange("tCreated_from", e.target.value),
-												placeholder: "Dari"
+										})] }, "email"),
+										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Role" }), /* @__PURE__ */ jsxs("div", {
+											className: "search-wrap",
+											children: [/* @__PURE__ */ jsx("svg", {
+												className: "search-icon",
+												fill: "none",
+												stroke: "currentColor",
+												viewBox: "0 0 24 24",
+												strokeWidth: "2",
+												children: /* @__PURE__ */ jsx("path", {
+													strokeLinecap: "round",
+													strokeLinejoin: "round",
+													d: "M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+												})
 											}), /* @__PURE__ */ jsx("input", {
-												type: "date",
+												type: "text",
+												placeholder: "Cari",
 												className: "search-input",
-												style: {
-													padding: "5px 8px",
-													minWidth: 0,
-													width: "50%"
-												},
-												value: dateRanges.tCreated_to,
-												onChange: (e) => handleDateRange("tCreated_to", e.target.value),
-												placeholder: "Sampai"
+												value: inputs["role"] || "",
+												onChange: (e) => handleSearch("role", e.target.value)
 											})]
-										})] }, "vCreator"),
+										})] }, "role"),
 										/* @__PURE__ */ jsxs("th", { children: [/* @__PURE__ */ jsx("h6", { children: "Diubah" }), /* @__PURE__ */ jsxs("div", {
 											style: {
 												display: "flex",
@@ -284,13 +279,9 @@ function Index() {
 										/* @__PURE__ */ jsx("th", { children: /* @__PURE__ */ jsx("h6", { children: "Aksi" }) })
 									] }) }), /* @__PURE__ */ jsx("tbody", { children: items.data && items.data.length > 0 ? items.data.map((item, idx) => /* @__PURE__ */ jsxs("tr", { children: [
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: items.from + idx }) }),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("iIdKategori", item["iIdKategori"]) }) }, "iIdKategori"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("vNama", item["vNama"]) }) }, "vNama"),
-										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
-											item?.tCreated ? String(item.tCreated) : "-",
-											" / ",
-											item?.vCreator || (item?.iCreatedid ? "-" : "-")
-										] }) }, "vCreator"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("name", item["name"]) }) }, "name"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("email", item["email"]) }) }, "email"),
+										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx("p", { children: formatValue("role", item["role"]) }) }, "role"),
 										/* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsxs("p", { children: [
 											item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-",
 											" / ",
@@ -315,13 +306,13 @@ function Index() {
 													background: "#ddd"
 												} }),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/subkategori/${item[primaryKey]}`,
+													href: `/master/users/${item[primaryKey]}`,
 													className: "text-success action-btn",
 													title: "Lihat",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-eye" })
 												}),
 												/* @__PURE__ */ jsx(Link, {
-													href: `/master/subkategori/${item[primaryKey]}/edit`,
+													href: `/master/users/${item[primaryKey]}/edit`,
 													className: "text-primary action-btn",
 													title: "Edit",
 													children: /* @__PURE__ */ jsx("i", { className: "lni lni-pencil-alt" })
