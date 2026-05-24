@@ -5,6 +5,7 @@ import InputFile from "@/Components/Forms/InputFile";
 import InputEnum from "@/Components/Forms/InputEnum";
 import InputSelect from "@/Components/Forms/InputSelect";
 import InputPassword from "@/Components/Forms/InputPassword";
+import FormActions from "@/Components/Forms/FormActions";
 
 export default function Form() {
     const { props } = usePage();
@@ -36,14 +37,6 @@ export default function Form() {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="card-style mb-30">
-                            <div className="d-flex justify-content-between align-items-center mb-25">
-                                <h6 className="mb-0">{title}</h6>
-                                <Link href={`/master/${table}`} className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
-                                    <i className="lni lni-arrow-left mr-5" style={{ fontSize: 13 }}></i>
-                                    Kembali
-                                </Link>
-                            </div>
-
                             <form onSubmit={submit}>
                                 <div className="row">
                                 <div className="col-12 col-md-6 col-lg-6">
@@ -54,15 +47,7 @@ export default function Form() {
                                 </div>
                                 </div>
 
-                                <div className="d-flex justify-content-end pt-15" style={{ borderTop: "1px solid #eee", marginTop: 8, paddingTop: 12 }}>
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
-                                    >
-                                        {processing ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Simpan"}
-                                    </button>
-                                </div>
+                                <FormActions backUrl={`/master/${table}`} processing={processing} isEdit={isEdit} />
                             </form>
                         </div>
                     </div>

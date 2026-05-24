@@ -5,10 +5,11 @@ import InputFile from "@/Components/Forms/InputFile";
 import InputEnum from "@/Components/Forms/InputEnum";
 import InputSelect from "@/Components/Forms/InputSelect";
 import InputPassword from "@/Components/Forms/InputPassword";
+import FormActions from "@/Components/Forms/FormActions";
 
 export default function Form() {
     const { props } = usePage();
-    const { title, table, fields, fieldLabels, fieldTypes, selects, item, primaryKey } = props;
+    const { title, table, fields, fieldLabels, fieldTypes, selects, item, primaryKey, audit } = props;
 
     const isEdit = !!item;
 
@@ -36,14 +37,6 @@ export default function Form() {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="card-style mb-30">
-                            <div className="d-flex justify-content-between align-items-center mb-25">
-                                <h6 className="mb-0">{title}</h6>
-                                <Link href={`/master/${table}`} className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
-                                    <i className="lni lni-arrow-left mr-5" style={{ fontSize: 13 }}></i>
-                                    Kembali
-                                </Link>
-                            </div>
-
                             <form onSubmit={submit}>
                                 <div className="row">
                                 <div className="col-12 col-md-6 col-lg-4">
@@ -93,15 +86,33 @@ export default function Form() {
                                 </div>
                                 </div>
 
-                                <div className="d-flex justify-content-end pt-15" style={{ borderTop: "1px solid #eee", marginTop: 8, paddingTop: 12 }}>
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
-                                    >
-                                        {processing ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Simpan"}
-                                    </button>
-                                </div>
+                                {audit && (
+                                    <div className="row" style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #eee" }}>
+                                        <div className="col-12">
+                                            <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Audit Trail</p>
+                                            <div className="row">
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Dibuat Oleh</p>
+                                                    <p className="show-field-value">{audit.creator || "-"}</p>
+                                                </div>
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Tanggal Dibuat</p>
+                                                    <p className="show-field-value">{audit.createdAt || "-"}</p>
+                                                </div>
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Diubah Oleh</p>
+                                                    <p className="show-field-value">{audit.updater || "-"}</p>
+                                                </div>
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Tanggal Diubah</p>
+                                                    <p className="show-field-value">{audit.updatedAt || "-"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <FormActions backUrl={`/master/${table}`} processing={processing} isEdit={isEdit} />
                             </form>
                         </div>
                     </div>

@@ -249,7 +249,7 @@ export default function Form() {
                 .compact-card .form-check { padding-top: 18px !important; margin-bottom: 6px !important; }
                 .compact-card .form-check-label { font-size: 13px; }
                 .compact-card hr { margin: 12px 0 !important; }
-                .compact-card .section-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+
                 .compact-card .btn-sm-custom { font-size: 13px; padding: 5px 14px; }
                 .compact-card .totals-wrap { margin-top: 8px; }
                 .compact-card .totals-wrap .input-style-1 { margin-bottom: 4px !important; }
@@ -269,19 +269,6 @@ export default function Form() {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="card-style mb-30">
-                            <div className="d-flex justify-content-between align-items-center mb-10">
-                                <h6 className="mb-0" style={{ fontSize: 15 }}>
-                                    {title}
-                                </h6>
-                                <Link
-                                    href="/transaksi/order"
-                                    className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
-                                >
-                                    <i className="lni lni-arrow-left mr-5"></i>{" "}
-                                    Kembali
-                                </Link>
-                            </div>
-
                             <form onSubmit={submit}>
                                 {readOnly && (
                                     <div
@@ -297,9 +284,6 @@ export default function Form() {
                                         <strong>{item.eStatus}</strong>)
                                     </div>
                                 )}
-                                <h6 className="section-title">
-                                    Informasi Order
-                                </h6>
                                 <div className="row">
                                     <div className="col-12 col-md-6 col-lg-3">
                                         <div className="input-style-1">
@@ -615,10 +599,9 @@ export default function Form() {
                                 <hr />
 
                                 <div
-                                    className="d-flex justify-content-between align-items-center section-title"
+                                    className="d-flex justify-content-end"
                                     style={{ marginBottom: 6 }}
                                 >
-                                    <span>Detail Barang</span>
                                     {!readOnly && (
                                         <button
                                             type="button"
@@ -1082,9 +1065,12 @@ export default function Form() {
 
                                 {!readOnly && (
                                     <div
-                                        className="d-flex justify-content-end action-bar"
-                                        style={{ gap: 8 }}
+                                        className="d-flex justify-content-between align-items-center action-bar"
                                     >
+                                        <Link href="/transaksi/order" className="main-btn danger-btn-outline rounded-full btn-hover btn-sm">
+                                            <i className="lni lni-arrow-left me-1"></i> Kembali
+                                        </Link>
+                                        <div className="d-flex" style={{ gap: 8 }}>
                                         {isEdit && data.eStatus === "Baru" && (
                                             <button
                                                 type="button"
@@ -1137,6 +1123,7 @@ export default function Form() {
                                                   ? "Simpan Perubahan"
                                                   : "Simpan"}
                                         </button>
+                                    </div>
                                     </div>
                                 )}
                             </form>

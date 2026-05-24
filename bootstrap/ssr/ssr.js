@@ -1,4 +1,4 @@
-import "./assets/LayoutGuest-C4UoXS7Q.js";
+import "./assets/LayoutGuest-BJS4wZ-z.js";
 import { Link, createInertiaApp, router, usePage } from "@inertiajs/react";
 import createServer from "@inertiajs/react/server";
 import { renderToString } from "react-dom/server";
@@ -233,28 +233,76 @@ var sidebarGroups = [
 		href: "/notifications"
 	}
 ];
-function SidebarLink({ href, children, className = "" }) {
+function SidebarLink({ href, children, className = "", title, onClick }) {
 	if (href === "#") return /* @__PURE__ */ jsx("a", {
 		href,
 		className,
+		"data-title": title,
+		onClick,
 		children
 	});
 	return /* @__PURE__ */ jsx(Link, {
 		href,
 		className,
+		"data-title": title,
+		onClick,
 		children
 	});
 }
-function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
+function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar }) {
+	const [showFlyout, setShowFlyout] = useState(false);
 	if (item.divider) return /* @__PURE__ */ jsx("span", {
 		className: "divider",
 		children: /* @__PURE__ */ jsx("hr", {})
 	});
 	const isActive = item.href && item.href !== "#" && currentUrl === item.href;
+	if (mini) return /* @__PURE__ */ jsxs("li", {
+		className: `nav-item ${isActive ? "active" : ""} ${item.items ? "nav-item-has-children" : ""}`,
+		onMouseEnter: () => setShowFlyout(true),
+		onMouseLeave: () => setShowFlyout(false),
+		children: [!item.items ? /* @__PURE__ */ jsx(SidebarLink, {
+			href: item.href,
+			title: item.label,
+			onClick: onToggleSidebar,
+			children: /* @__PURE__ */ jsx("span", {
+				className: "icon",
+				children: /* @__PURE__ */ jsx("i", { className: item.icon })
+			})
+		}) : /* @__PURE__ */ jsx("button", {
+			type: "button",
+			className: isOpen ? "" : "collapsed",
+			onClick: () => {
+				onToggleSidebar();
+				onToggle();
+			},
+			children: /* @__PURE__ */ jsx("span", {
+				className: "icon",
+				children: /* @__PURE__ */ jsx("i", { className: item.icon })
+			})
+		}), showFlyout && /* @__PURE__ */ jsxs("div", {
+			className: "sidebar-flyout",
+			children: [/* @__PURE__ */ jsx("div", {
+				className: "sidebar-flyout-header",
+				children: item.label
+			}), item.items ? /* @__PURE__ */ jsx("ul", {
+				className: "sidebar-flyout-menu",
+				children: item.items.map((child) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(SidebarLink, {
+					href: child.href,
+					className: child.href !== "#" && currentUrl === child.href ? "active" : "",
+					children: child.label
+				}) }, child.label))
+			}) : /* @__PURE__ */ jsx(SidebarLink, {
+				href: item.href,
+				className: "sidebar-flyout-link",
+				children: item.label
+			})]
+		})]
+	});
 	if (!item.items) return /* @__PURE__ */ jsx("li", {
 		className: `nav-item ${isActive ? "active" : ""}`,
 		children: /* @__PURE__ */ jsxs(SidebarLink, {
 			href: item.href,
+			title: item.label,
 			children: [/* @__PURE__ */ jsx("span", {
 				className: "icon",
 				children: /* @__PURE__ */ jsx("i", { className: item.icon })
@@ -274,6 +322,7 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
 			"aria-controls": collapseId,
 			"aria-expanded": isOpen,
 			"aria-label": `Toggle ${item.label} navigation`,
+			"data-title": item.label,
 			children: [/* @__PURE__ */ jsx("span", {
 				className: "icon",
 				children: /* @__PURE__ */ jsx("i", { className: item.icon })
@@ -292,7 +341,7 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
 		})]
 	});
 }
-function Sidebar({ sidebarOpen }) {
+function Sidebar({ sidebarOpen, onToggleSidebar }) {
 	const { url } = usePage();
 	const [openMenus, setOpenMenus] = useState(() => sidebarGroups.reduce((menus, item) => {
 		if (item.items && (item.open || item.items.some((child) => child.href === url))) menus[item.id] = true;
@@ -308,16 +357,25 @@ function Sidebar({ sidebarOpen }) {
 		className: `sidebar-nav-wrapper ${sidebarOpen ? "active" : ""}`,
 		children: [/* @__PURE__ */ jsx("div", {
 			className: "navbar-logo",
-			children: /* @__PURE__ */ jsx(Link, {
+			children: /* @__PURE__ */ jsxs(Link, {
 				href: "/",
-				children: /* @__PURE__ */ jsx("span", {
+				children: [/* @__PURE__ */ jsx("span", {
+					className: "logo-full",
 					style: {
 						fontSize: 20,
 						fontWeight: 700,
 						letterSpacing: 1
 					},
 					children: "BandumOffice"
-				})
+				}), /* @__PURE__ */ jsx("span", {
+					className: "logo-mini",
+					style: {
+						display: "none",
+						fontSize: 18,
+						fontWeight: 700
+					},
+					children: "BO"
+				})]
 			})
 		}), /* @__PURE__ */ jsx("nav", {
 			className: "sidebar-nav",
@@ -325,7 +383,9 @@ function Sidebar({ sidebarOpen }) {
 				item,
 				currentUrl: url,
 				isOpen: Boolean(openMenus[item.id]),
-				onToggle: () => toggleMenu(item.id)
+				onToggle: () => toggleMenu(item.id),
+				mini: sidebarOpen,
+				onToggleSidebar
 			}, item.id || item.label || `divider-${index}`)) })
 		})]
 	});
@@ -387,12 +447,12 @@ function Header({ sidebarOpen, toggleSidebar, scrolled }) {
 						className: "header-left d-flex align-items-center",
 						children: [/* @__PURE__ */ jsx("div", {
 							className: "menu-toggle-btn mr-15",
-							children: /* @__PURE__ */ jsxs("button", {
+							children: /* @__PURE__ */ jsx("button", {
 								type: "button",
 								id: "menu-toggle",
 								className: "main-btn primary-btn btn-hover",
 								onClick: toggleSidebar,
-								children: [/* @__PURE__ */ jsx("i", { className: `lni ${sidebarOpen ? "lni-menu" : "lni-chevron-left"} me-2` }), "Menu"]
+								children: /* @__PURE__ */ jsx("i", { className: "lni lni-menu" })
 							})
 						}), /* @__PURE__ */ jsx("div", {
 							className: "header-search d-none d-md-flex",
@@ -605,7 +665,13 @@ function Footer() {
 function LayoutUser({ children }) {
 	const { component, props } = usePage();
 	const { title } = props;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const [sidebarOpen, setSidebarOpen] = useState(() => {
+		try {
+			return localStorage.getItem("sidebarMini") === "true";
+		} catch {
+			return false;
+		}
+	});
 	const [scrolled, setScrolled] = useState(false);
 	const pageTitle = title || component || "Dashboard";
 	useEffect(() => {
@@ -614,7 +680,11 @@ function LayoutUser({ children }) {
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
-	const toggleSidebar = () => setSidebarOpen((open) => !open);
+	const toggleSidebar = () => setSidebarOpen((open) => {
+		const next = !open;
+		localStorage.setItem("sidebarMini", next);
+		return next;
+	});
 	const closeSidebar = () => setSidebarOpen(false);
 	return /* @__PURE__ */ jsxs(Fragment, { children: [
 		/* @__PURE__ */ jsx("div", {
@@ -622,7 +692,10 @@ function LayoutUser({ children }) {
 			style: { display: "none" },
 			children: /* @__PURE__ */ jsx("div", { className: "spinner" })
 		}),
-		/* @__PURE__ */ jsx(Sidebar, { sidebarOpen }),
+		/* @__PURE__ */ jsx(Sidebar, {
+			sidebarOpen,
+			onToggleSidebar: toggleSidebar
+		}),
 		/* @__PURE__ */ jsx("button", {
 			type: "button",
 			className: `overlay border-0 ${sidebarOpen ? "active" : ""}`,
@@ -707,147 +780,147 @@ var render = await createInertiaApp({
 	title: (title) => title ? `${title} - Laravel Inertia React` : "Laravel Inertia React",
 	resolve: async (name) => {
 		const module = await (/* @__PURE__ */ Object.assign({
-			"./Pages/Alerts.jsx": () => import("./assets/Alerts-e4CzA40W.js"),
-			"./Pages/BlankPage.jsx": () => import("./assets/BlankPage-BEpZWBwG.js"),
-			"./Pages/Buttons.jsx": () => import("./assets/Buttons-CGpbfeir.js"),
-			"./Pages/Cards.jsx": () => import("./assets/Cards-CNF4Ma1v.js"),
-			"./Pages/Dashboard.jsx": () => import("./assets/Dashboard-Cw6Vg36d.js"),
-			"./Pages/FormElements.jsx": () => import("./assets/FormElements-xzZsIUWG.js"),
-			"./Pages/Icons.jsx": () => import("./assets/Icons-BB35Dsm4.js"),
-			"./Pages/Invoice.jsx": () => import("./assets/Invoice-BCLSKZ8Z.js"),
-			"./Pages/Master/artikel/Create.jsx": () => import("./assets/Create-CS8Szq7N.js"),
-			"./Pages/Master/artikel/Edit.jsx": () => import("./assets/Edit-BZ271aB6.js"),
-			"./Pages/Master/artikel/Index.jsx": () => import("./assets/Index-pbR-Dzr1.js"),
-			"./Pages/Master/artikel/Show.jsx": () => import("./assets/Show-oZaBjFqg.js"),
-			"./Pages/Master/banner/Create.jsx": () => import("./assets/Create-x2UGlOov.js"),
-			"./Pages/Master/banner/Edit.jsx": () => import("./assets/Edit-DQ-tDCbI.js"),
-			"./Pages/Master/banner/Index.jsx": () => import("./assets/Index-BpVpz9Ja.js"),
-			"./Pages/Master/banner/Show.jsx": () => import("./assets/Show-CEVn9TIQ.js"),
-			"./Pages/Master/barang/Create.jsx": () => import("./assets/Create-BJAmQ1ok.js"),
-			"./Pages/Master/barang/Edit.jsx": () => import("./assets/Edit-B8AcQ-2Q.js"),
-			"./Pages/Master/barang/Index.jsx": () => import("./assets/Index-DJVGhVd8.js"),
-			"./Pages/Master/barang/Show.jsx": () => import("./assets/Show-DZhxHEaJ.js"),
-			"./Pages/Master/barang-kemasan/Create.jsx": () => import("./assets/Create-pl-8Vqqo.js"),
-			"./Pages/Master/barang-kemasan/Edit.jsx": () => import("./assets/Edit-CV4oXdCo.js"),
-			"./Pages/Master/barang-kemasan/Index.jsx": () => import("./assets/Index-WA9o1Aq-.js"),
-			"./Pages/Master/barang-kemasan/Show.jsx": () => import("./assets/Show-_Cz25m9W.js"),
-			"./Pages/Master/barang-media/Create.jsx": () => import("./assets/Create-BmS_-SVW.js"),
-			"./Pages/Master/barang-media/Edit.jsx": () => import("./assets/Edit-Ccy9mBJT.js"),
-			"./Pages/Master/barang-media/Index.jsx": () => import("./assets/Index-CtZ5VlMB.js"),
-			"./Pages/Master/barang-media/Show.jsx": () => import("./assets/Show-C2TG3Z0E.js"),
-			"./Pages/Master/brand/Create.jsx": () => import("./assets/Create-BW3PNOVA.js"),
-			"./Pages/Master/brand/Edit.jsx": () => import("./assets/Edit-CU6x_vXg.js"),
-			"./Pages/Master/brand/Index.jsx": () => import("./assets/Index-BvrmA7Zs.js"),
-			"./Pages/Master/brand/Show.jsx": () => import("./assets/Show-0G8mP2wr.js"),
-			"./Pages/Master/customer/Create.jsx": () => import("./assets/Create-D4wQa2GF.js"),
-			"./Pages/Master/customer/Edit.jsx": () => import("./assets/Edit-CdIIjpBN.js"),
-			"./Pages/Master/customer/Index.jsx": () => import("./assets/Index-DxGeAw5Q.js"),
-			"./Pages/Master/customer/Show.jsx": () => import("./assets/Show-Ch0ngZs5.js"),
-			"./Pages/Master/customer-alamat/Create.jsx": () => import("./assets/Create-OQu_m2Ky.js"),
-			"./Pages/Master/customer-alamat/Edit.jsx": () => import("./assets/Edit-1l35P57Y.js"),
-			"./Pages/Master/customer-alamat/Index.jsx": () => import("./assets/Index-3dPJtbF9.js"),
-			"./Pages/Master/customer-alamat/Show.jsx": () => import("./assets/Show-Dg0e5xWe.js"),
-			"./Pages/Master/ekspedisi/Create.jsx": () => import("./assets/Create-D4di7CWs.js"),
-			"./Pages/Master/ekspedisi/Edit.jsx": () => import("./assets/Edit-O42RgOZq.js"),
-			"./Pages/Master/ekspedisi/Index.jsx": () => import("./assets/Index-BuV6hspw.js"),
-			"./Pages/Master/ekspedisi/Show.jsx": () => import("./assets/Show-CyAQ-f27.js"),
-			"./Pages/Master/faq/Create.jsx": () => import("./assets/Create-CEBZnsHl.js"),
-			"./Pages/Master/faq/Edit.jsx": () => import("./assets/Edit-Cb60mGPK.js"),
-			"./Pages/Master/faq/Index.jsx": () => import("./assets/Index-CwCxLeJm.js"),
-			"./Pages/Master/faq/Show.jsx": () => import("./assets/Show-DxHRa46f.js"),
-			"./Pages/Master/features/Create.jsx": () => import("./assets/Create-CyZAnGbO.js"),
-			"./Pages/Master/features/Edit.jsx": () => import("./assets/Edit-ByBvQKE9.js"),
-			"./Pages/Master/features/Index.jsx": () => import("./assets/Index-C8LThH2O.js"),
-			"./Pages/Master/features/Show.jsx": () => import("./assets/Show-B5oZ75zF.js"),
-			"./Pages/Master/gudang/Create.jsx": () => import("./assets/Create-CIFjyFH8.js"),
-			"./Pages/Master/gudang/Edit.jsx": () => import("./assets/Edit-CV37sNSL.js"),
-			"./Pages/Master/gudang/Index.jsx": () => import("./assets/Index-JuWcqC7S.js"),
-			"./Pages/Master/gudang/Show.jsx": () => import("./assets/Show-5kRxNCg-.js"),
-			"./Pages/Master/jenis-pengiriman/Create.jsx": () => import("./assets/Create-D7Ue1bXQ.js"),
-			"./Pages/Master/jenis-pengiriman/Edit.jsx": () => import("./assets/Edit-D0NtZxSH.js"),
-			"./Pages/Master/jenis-pengiriman/Index.jsx": () => import("./assets/Index-BZUAoS54.js"),
-			"./Pages/Master/jenis-pengiriman/Show.jsx": () => import("./assets/Show-BGhIqQxA.js"),
-			"./Pages/Master/kategori/Create.jsx": () => import("./assets/Create-BxGhoYFK.js"),
-			"./Pages/Master/kategori/Edit.jsx": () => import("./assets/Edit-Bx0V2PrH.js"),
-			"./Pages/Master/kategori/Index.jsx": () => import("./assets/Index-LcN2kooP.js"),
-			"./Pages/Master/kategori/Show.jsx": () => import("./assets/Show-BP4002rg.js"),
-			"./Pages/Master/kategori-perusahaan/Create.jsx": () => import("./assets/Create-DTJzSkGW.js"),
-			"./Pages/Master/kategori-perusahaan/Edit.jsx": () => import("./assets/Edit-DwOlK9B0.js"),
-			"./Pages/Master/kategori-perusahaan/Index.jsx": () => import("./assets/Index-CJqX6aTa.js"),
-			"./Pages/Master/kategori-perusahaan/Show.jsx": () => import("./assets/Show-C_Muoezo.js"),
-			"./Pages/Master/kecamatan/Create.jsx": () => import("./assets/Create-BO5iapbr.js"),
-			"./Pages/Master/kecamatan/Edit.jsx": () => import("./assets/Edit-C_C8BccQ.js"),
-			"./Pages/Master/kecamatan/Index.jsx": () => import("./assets/Index-DXxtizea.js"),
-			"./Pages/Master/kecamatan/Show.jsx": () => import("./assets/Show-BejBmKa4.js"),
-			"./Pages/Master/kelurahan/Create.jsx": () => import("./assets/Create-BCWj7wym.js"),
-			"./Pages/Master/kelurahan/Edit.jsx": () => import("./assets/Edit-BwVp7NPn.js"),
-			"./Pages/Master/kelurahan/Index.jsx": () => import("./assets/Index-BYulww9e.js"),
-			"./Pages/Master/kelurahan/Show.jsx": () => import("./assets/Show-Dew4iDxm.js"),
-			"./Pages/Master/klasifikasi-perusahaan/Create.jsx": () => import("./assets/Create-BiVFRWYL.js"),
-			"./Pages/Master/klasifikasi-perusahaan/Edit.jsx": () => import("./assets/Edit-C3h4o3BE.js"),
-			"./Pages/Master/klasifikasi-perusahaan/Index.jsx": () => import("./assets/Index-Dc76jKni.js"),
-			"./Pages/Master/klasifikasi-perusahaan/Show.jsx": () => import("./assets/Show-DskYpjyI.js"),
-			"./Pages/Master/kota/Create.jsx": () => import("./assets/Create-CSH_UY1b.js"),
-			"./Pages/Master/kota/Edit.jsx": () => import("./assets/Edit-Cye2SyHV.js"),
-			"./Pages/Master/kota/Index.jsx": () => import("./assets/Index-Dddku6t0.js"),
-			"./Pages/Master/kota/Show.jsx": () => import("./assets/Show-mz2hOoJX.js"),
-			"./Pages/Master/negara/Create.jsx": () => import("./assets/Create-DjutDw1P.js"),
-			"./Pages/Master/negara/Edit.jsx": () => import("./assets/Edit-CYWMmxSg.js"),
-			"./Pages/Master/negara/Index.jsx": () => import("./assets/Index-Cx60t0Fo.js"),
-			"./Pages/Master/negara/Show.jsx": () => import("./assets/Show-Dmctmyq7.js"),
-			"./Pages/Master/pembayaran/Create.jsx": () => import("./assets/Create-AEQCuqUk.js"),
-			"./Pages/Master/pembayaran/Edit.jsx": () => import("./assets/Edit-iruVDNBF.js"),
-			"./Pages/Master/pembayaran/Index.jsx": () => import("./assets/Index-ZiNgofdn.js"),
-			"./Pages/Master/pembayaran/Show.jsx": () => import("./assets/Show-CaZP8jSh.js"),
-			"./Pages/Master/provinsi/Create.jsx": () => import("./assets/Create-Dv8j-v1y.js"),
-			"./Pages/Master/provinsi/Edit.jsx": () => import("./assets/Edit-C0aHeiup.js"),
-			"./Pages/Master/provinsi/Index.jsx": () => import("./assets/Index-Czmgrajq.js"),
-			"./Pages/Master/provinsi/Show.jsx": () => import("./assets/Show-DBhk2lAr.js"),
-			"./Pages/Master/roles/Create.jsx": () => import("./assets/Create-gt-UiPU_.js"),
-			"./Pages/Master/roles/Edit.jsx": () => import("./assets/Edit-YEkKpk_l.js"),
-			"./Pages/Master/roles/Index.jsx": () => import("./assets/Index-ikLQOjxm.js"),
-			"./Pages/Master/roles/Show.jsx": () => import("./assets/Show-eWBwE3hL.js"),
-			"./Pages/Master/settings/Create.jsx": () => import("./assets/Create-C3FmQ75H.js"),
-			"./Pages/Master/settings/Edit.jsx": () => import("./assets/Edit-joZw6BaD.js"),
-			"./Pages/Master/settings/Index.jsx": () => import("./assets/Index-DljhygOk.js"),
-			"./Pages/Master/settings/Show.jsx": () => import("./assets/Show-kllE5VDq.js"),
-			"./Pages/Master/subkategori/Create.jsx": () => import("./assets/Create-DSRCaeCZ.js"),
-			"./Pages/Master/subkategori/Edit.jsx": () => import("./assets/Edit-DTxc_vzR.js"),
-			"./Pages/Master/subkategori/Index.jsx": () => import("./assets/Index-CWf_rJHS.js"),
-			"./Pages/Master/subkategori/Show.jsx": () => import("./assets/Show-B-oXzLU_.js"),
-			"./Pages/Master/testimoni/Create.jsx": () => import("./assets/Create-DaqYdNen.js"),
-			"./Pages/Master/testimoni/Edit.jsx": () => import("./assets/Edit-Dp-OFyAh.js"),
-			"./Pages/Master/testimoni/Index.jsx": () => import("./assets/Index-4vTyyY-x.js"),
-			"./Pages/Master/testimoni/Show.jsx": () => import("./assets/Show-CAOpT7wa.js"),
-			"./Pages/Master/tipe-pembayaran/Create.jsx": () => import("./assets/Create-DfG4Gq50.js"),
-			"./Pages/Master/tipe-pembayaran/Edit.jsx": () => import("./assets/Edit-C8PxmuB4.js"),
-			"./Pages/Master/tipe-pembayaran/Index.jsx": () => import("./assets/Index-Cyji0xWF.js"),
-			"./Pages/Master/tipe-pembayaran/Show.jsx": () => import("./assets/Show-DRMkfu7K.js"),
-			"./Pages/Master/users/Create.jsx": () => import("./assets/Create-B_-13E7o.js"),
-			"./Pages/Master/users/Edit.jsx": () => import("./assets/Edit-Ca4FgTHR.js"),
-			"./Pages/Master/users/Index.jsx": () => import("./assets/Index-DnALY0fB.js"),
-			"./Pages/Master/users/Show.jsx": () => import("./assets/Show-CyeLAJN-.js"),
-			"./Pages/Master/vendor/Create.jsx": () => import("./assets/Create-B3RS_BgV.js"),
-			"./Pages/Master/vendor/Edit.jsx": () => import("./assets/Edit-CY5sUD8O.js"),
-			"./Pages/Master/vendor/Index.jsx": () => import("./assets/Index-QRQlqg0_.js"),
-			"./Pages/Master/vendor/Show.jsx": () => import("./assets/Show-BBxMq0br.js"),
-			"./Pages/Master/vendor-alamat/Create.jsx": () => import("./assets/Create-BqnxCRpo.js"),
-			"./Pages/Master/vendor-alamat/Edit.jsx": () => import("./assets/Edit-CpNcXvXV.js"),
-			"./Pages/Master/vendor-alamat/Index.jsx": () => import("./assets/Index-B1a5LLe3.js"),
-			"./Pages/Master/vendor-alamat/Show.jsx": () => import("./assets/Show-CzwnpCg1.js"),
-			"./Pages/MdiIcons.jsx": () => import("./assets/MdiIcons-FGjWzAIN.js"),
-			"./Pages/Notifications.jsx": () => import("./assets/Notifications-CttYvgYu.js"),
-			"./Pages/Settings.jsx": () => import("./assets/Settings-DybcX3Fl.js"),
-			"./Pages/SignIn.jsx": () => import("./assets/SignIn-BaO1LDtb.js"),
-			"./Pages/SignUp.jsx": () => import("./assets/SignUp-C6YRhU9C.js"),
-			"./Pages/Tables.jsx": () => import("./assets/Tables-D9XDkbL9.js"),
-			"./Pages/Transaksi/Invoice/Form.jsx": () => import("./assets/Form-BpQon9jw.js"),
-			"./Pages/Transaksi/Invoice/Index.jsx": () => import("./assets/Index-Dy_V4meJ.js"),
-			"./Pages/Transaksi/Order/Form.jsx": () => import("./assets/Form-v2ZSJPo4.js"),
-			"./Pages/Transaksi/Order/Index.jsx": () => import("./assets/Index-CNZpkrLg.js"),
-			"./Pages/Transaksi/Packing/Form.jsx": () => import("./assets/Form-D_V87fmJ.js"),
-			"./Pages/Transaksi/Packing/Index.jsx": () => import("./assets/Index-Ch2Dps_8.js"),
-			"./Pages/Typography.jsx": () => import("./assets/Typography-DiSUiRdy.js")
+			"./Pages/Alerts.jsx": () => import("./assets/Alerts-BdIER4ac.js"),
+			"./Pages/BlankPage.jsx": () => import("./assets/BlankPage-BHtfvLfj.js"),
+			"./Pages/Buttons.jsx": () => import("./assets/Buttons-BBptZaSi.js"),
+			"./Pages/Cards.jsx": () => import("./assets/Cards-Dg60UuCf.js"),
+			"./Pages/Dashboard.jsx": () => import("./assets/Dashboard-DNS6DIcp.js"),
+			"./Pages/FormElements.jsx": () => import("./assets/FormElements-Dm2cs-81.js"),
+			"./Pages/Icons.jsx": () => import("./assets/Icons-Bp98GiuV.js"),
+			"./Pages/Invoice.jsx": () => import("./assets/Invoice-Cfif2ZlU.js"),
+			"./Pages/Master/artikel/Create.jsx": () => import("./assets/Create-DcfIqFJO.js"),
+			"./Pages/Master/artikel/Edit.jsx": () => import("./assets/Edit-C0W4fzsx.js"),
+			"./Pages/Master/artikel/Index.jsx": () => import("./assets/Index-CaaRFmbS.js"),
+			"./Pages/Master/artikel/Show.jsx": () => import("./assets/Show-BCGYdB6z.js"),
+			"./Pages/Master/banner/Create.jsx": () => import("./assets/Create-BL_jbdzu.js"),
+			"./Pages/Master/banner/Edit.jsx": () => import("./assets/Edit-B0lJ_fZp.js"),
+			"./Pages/Master/banner/Index.jsx": () => import("./assets/Index-CS8cu-Vg.js"),
+			"./Pages/Master/banner/Show.jsx": () => import("./assets/Show-B92CzI40.js"),
+			"./Pages/Master/barang/Create.jsx": () => import("./assets/Create-DgfugyPi.js"),
+			"./Pages/Master/barang/Edit.jsx": () => import("./assets/Edit-DQhcpow5.js"),
+			"./Pages/Master/barang/Index.jsx": () => import("./assets/Index-Bsrty-4g.js"),
+			"./Pages/Master/barang/Show.jsx": () => import("./assets/Show-TaysA0oL.js"),
+			"./Pages/Master/barang-kemasan/Create.jsx": () => import("./assets/Create-BCtAn4KS.js"),
+			"./Pages/Master/barang-kemasan/Edit.jsx": () => import("./assets/Edit-lMuz5xPs.js"),
+			"./Pages/Master/barang-kemasan/Index.jsx": () => import("./assets/Index-FwjR16-3.js"),
+			"./Pages/Master/barang-kemasan/Show.jsx": () => import("./assets/Show-CDv01qpH.js"),
+			"./Pages/Master/barang-media/Create.jsx": () => import("./assets/Create-D7IzIWCY.js"),
+			"./Pages/Master/barang-media/Edit.jsx": () => import("./assets/Edit-Qav9rbCw.js"),
+			"./Pages/Master/barang-media/Index.jsx": () => import("./assets/Index-CrEhhiNb.js"),
+			"./Pages/Master/barang-media/Show.jsx": () => import("./assets/Show-BMOMql_W.js"),
+			"./Pages/Master/brand/Create.jsx": () => import("./assets/Create-Ce0TlnNr.js"),
+			"./Pages/Master/brand/Edit.jsx": () => import("./assets/Edit-B1w18gwp.js"),
+			"./Pages/Master/brand/Index.jsx": () => import("./assets/Index-DjV-S5SE.js"),
+			"./Pages/Master/brand/Show.jsx": () => import("./assets/Show-Cyfeujef.js"),
+			"./Pages/Master/customer/Create.jsx": () => import("./assets/Create-CMeqNCqr.js"),
+			"./Pages/Master/customer/Edit.jsx": () => import("./assets/Edit-D7AyMyiN.js"),
+			"./Pages/Master/customer/Index.jsx": () => import("./assets/Index-Cfm_lgNA.js"),
+			"./Pages/Master/customer/Show.jsx": () => import("./assets/Show-RIbUw_ny.js"),
+			"./Pages/Master/customer-alamat/Create.jsx": () => import("./assets/Create-Drdnyf_l2.js"),
+			"./Pages/Master/customer-alamat/Edit.jsx": () => import("./assets/Edit-BloWJk2M2.js"),
+			"./Pages/Master/customer-alamat/Index.jsx": () => import("./assets/Index-JRLBhrhK.js"),
+			"./Pages/Master/customer-alamat/Show.jsx": () => import("./assets/Show-Cau7g7vL.js"),
+			"./Pages/Master/ekspedisi/Create.jsx": () => import("./assets/Create-DUSQRcEh.js"),
+			"./Pages/Master/ekspedisi/Edit.jsx": () => import("./assets/Edit-ka8aSmLc.js"),
+			"./Pages/Master/ekspedisi/Index.jsx": () => import("./assets/Index-B9_lMXx6.js"),
+			"./Pages/Master/ekspedisi/Show.jsx": () => import("./assets/Show-DTYqmalj.js"),
+			"./Pages/Master/faq/Create.jsx": () => import("./assets/Create-kAzAI1EE.js"),
+			"./Pages/Master/faq/Edit.jsx": () => import("./assets/Edit-D9s70EAk.js"),
+			"./Pages/Master/faq/Index.jsx": () => import("./assets/Index-CNiXvyOf.js"),
+			"./Pages/Master/faq/Show.jsx": () => import("./assets/Show-DG43bMYB.js"),
+			"./Pages/Master/features/Create.jsx": () => import("./assets/Create-D-AmOKqa.js"),
+			"./Pages/Master/features/Edit.jsx": () => import("./assets/Edit-Bvvu9LL8.js"),
+			"./Pages/Master/features/Index.jsx": () => import("./assets/Index-BV0KuTbB.js"),
+			"./Pages/Master/features/Show.jsx": () => import("./assets/Show-BYIYKJHX.js"),
+			"./Pages/Master/gudang/Create.jsx": () => import("./assets/Create-kflqqXHs.js"),
+			"./Pages/Master/gudang/Edit.jsx": () => import("./assets/Edit-CcSAY_Jg.js"),
+			"./Pages/Master/gudang/Index.jsx": () => import("./assets/Index-z1538X1f.js"),
+			"./Pages/Master/gudang/Show.jsx": () => import("./assets/Show-DaEFCY5u.js"),
+			"./Pages/Master/jenis-pengiriman/Create.jsx": () => import("./assets/Create-CYuMl3iI.js"),
+			"./Pages/Master/jenis-pengiriman/Edit.jsx": () => import("./assets/Edit-CbcwNRyf.js"),
+			"./Pages/Master/jenis-pengiriman/Index.jsx": () => import("./assets/Index-D6jquzTJ.js"),
+			"./Pages/Master/jenis-pengiriman/Show.jsx": () => import("./assets/Show-7gPq79gy.js"),
+			"./Pages/Master/kategori/Create.jsx": () => import("./assets/Create-ByPWH-Lz.js"),
+			"./Pages/Master/kategori/Edit.jsx": () => import("./assets/Edit-CC9zrd7w.js"),
+			"./Pages/Master/kategori/Index.jsx": () => import("./assets/Index-dvTTPj9K.js"),
+			"./Pages/Master/kategori/Show.jsx": () => import("./assets/Show-D_o_vKnF.js"),
+			"./Pages/Master/kategori-perusahaan/Create.jsx": () => import("./assets/Create-49vZzO96.js"),
+			"./Pages/Master/kategori-perusahaan/Edit.jsx": () => import("./assets/Edit-O8QAMFWa.js"),
+			"./Pages/Master/kategori-perusahaan/Index.jsx": () => import("./assets/Index-C3F0ejUQ.js"),
+			"./Pages/Master/kategori-perusahaan/Show.jsx": () => import("./assets/Show-WWiVtDdG.js"),
+			"./Pages/Master/kecamatan/Create.jsx": () => import("./assets/Create-DjvCpdCh.js"),
+			"./Pages/Master/kecamatan/Edit.jsx": () => import("./assets/Edit-DeEHP4gT.js"),
+			"./Pages/Master/kecamatan/Index.jsx": () => import("./assets/Index-Db4e-En0.js"),
+			"./Pages/Master/kecamatan/Show.jsx": () => import("./assets/Show-BRorchIW.js"),
+			"./Pages/Master/kelurahan/Create.jsx": () => import("./assets/Create-CtNiw93B.js"),
+			"./Pages/Master/kelurahan/Edit.jsx": () => import("./assets/Edit-DGVQ2dEj.js"),
+			"./Pages/Master/kelurahan/Index.jsx": () => import("./assets/Index-3iiGWv1A.js"),
+			"./Pages/Master/kelurahan/Show.jsx": () => import("./assets/Show-CcsIEAPd.js"),
+			"./Pages/Master/klasifikasi-perusahaan/Create.jsx": () => import("./assets/Create-CipLZRF1.js"),
+			"./Pages/Master/klasifikasi-perusahaan/Edit.jsx": () => import("./assets/Edit-Dr8_50Se.js"),
+			"./Pages/Master/klasifikasi-perusahaan/Index.jsx": () => import("./assets/Index-C_scW8jF.js"),
+			"./Pages/Master/klasifikasi-perusahaan/Show.jsx": () => import("./assets/Show-GajrEzrc.js"),
+			"./Pages/Master/kota/Create.jsx": () => import("./assets/Create-zqlLva-h.js"),
+			"./Pages/Master/kota/Edit.jsx": () => import("./assets/Edit-8MrrzKz5.js"),
+			"./Pages/Master/kota/Index.jsx": () => import("./assets/Index-BV7VdkM2.js"),
+			"./Pages/Master/kota/Show.jsx": () => import("./assets/Show-udKw1nza.js"),
+			"./Pages/Master/negara/Create.jsx": () => import("./assets/Create-BL_PEN5u.js"),
+			"./Pages/Master/negara/Edit.jsx": () => import("./assets/Edit-Cb9Pskrd.js"),
+			"./Pages/Master/negara/Index.jsx": () => import("./assets/Index-DJPvj2S-.js"),
+			"./Pages/Master/negara/Show.jsx": () => import("./assets/Show-enGToEVM.js"),
+			"./Pages/Master/pembayaran/Create.jsx": () => import("./assets/Create-CDPzmDSd.js"),
+			"./Pages/Master/pembayaran/Edit.jsx": () => import("./assets/Edit-CaH0CyGd.js"),
+			"./Pages/Master/pembayaran/Index.jsx": () => import("./assets/Index-CkYqDCXr.js"),
+			"./Pages/Master/pembayaran/Show.jsx": () => import("./assets/Show-CPC8vqKH.js"),
+			"./Pages/Master/provinsi/Create.jsx": () => import("./assets/Create-Bb8zB1eK.js"),
+			"./Pages/Master/provinsi/Edit.jsx": () => import("./assets/Edit-lSUDyIxf.js"),
+			"./Pages/Master/provinsi/Index.jsx": () => import("./assets/Index-BqFvIlDF.js"),
+			"./Pages/Master/provinsi/Show.jsx": () => import("./assets/Show-DGYy1nrp.js"),
+			"./Pages/Master/roles/Create.jsx": () => import("./assets/Create-kKkJhYIU.js"),
+			"./Pages/Master/roles/Edit.jsx": () => import("./assets/Edit-BWV_mzAt.js"),
+			"./Pages/Master/roles/Index.jsx": () => import("./assets/Index-ChizFZIu.js"),
+			"./Pages/Master/roles/Show.jsx": () => import("./assets/Show-p7OZ-fB_.js"),
+			"./Pages/Master/settings/Create.jsx": () => import("./assets/Create-BjdBBQD9.js"),
+			"./Pages/Master/settings/Edit.jsx": () => import("./assets/Edit-TJaPnm-g.js"),
+			"./Pages/Master/settings/Index.jsx": () => import("./assets/Index-DDjDa1bT.js"),
+			"./Pages/Master/settings/Show.jsx": () => import("./assets/Show-DjjRLsWy.js"),
+			"./Pages/Master/subkategori/Create.jsx": () => import("./assets/Create-D_Vc2M-X.js"),
+			"./Pages/Master/subkategori/Edit.jsx": () => import("./assets/Edit-CrRgVpwG.js"),
+			"./Pages/Master/subkategori/Index.jsx": () => import("./assets/Index-CK3Y4G3b.js"),
+			"./Pages/Master/subkategori/Show.jsx": () => import("./assets/Show-BYY6z5G4.js"),
+			"./Pages/Master/testimoni/Create.jsx": () => import("./assets/Create-DTlXO4zC.js"),
+			"./Pages/Master/testimoni/Edit.jsx": () => import("./assets/Edit-5FugA-g8.js"),
+			"./Pages/Master/testimoni/Index.jsx": () => import("./assets/Index-Do0w_Qaj.js"),
+			"./Pages/Master/testimoni/Show.jsx": () => import("./assets/Show-BQq5k2vJ.js"),
+			"./Pages/Master/tipe-pembayaran/Create.jsx": () => import("./assets/Create-BdcXZRlt.js"),
+			"./Pages/Master/tipe-pembayaran/Edit.jsx": () => import("./assets/Edit-mV9z2bxT.js"),
+			"./Pages/Master/tipe-pembayaran/Index.jsx": () => import("./assets/Index-BocDD_n0.js"),
+			"./Pages/Master/tipe-pembayaran/Show.jsx": () => import("./assets/Show-CpGYQ7IT.js"),
+			"./Pages/Master/users/Create.jsx": () => import("./assets/Create-BHUk3mvo.js"),
+			"./Pages/Master/users/Edit.jsx": () => import("./assets/Edit-BUkf2GBN.js"),
+			"./Pages/Master/users/Index.jsx": () => import("./assets/Index-BSLC1gU9.js"),
+			"./Pages/Master/users/Show.jsx": () => import("./assets/Show-D-g5g_SV.js"),
+			"./Pages/Master/vendor/Create.jsx": () => import("./assets/Create-DAtDxi-n.js"),
+			"./Pages/Master/vendor/Edit.jsx": () => import("./assets/Edit-jW2ujO-R.js"),
+			"./Pages/Master/vendor/Index.jsx": () => import("./assets/Index-z_Xc1mLc.js"),
+			"./Pages/Master/vendor/Show.jsx": () => import("./assets/Show-C1qXHftq.js"),
+			"./Pages/Master/vendor-alamat/Create.jsx": () => import("./assets/Create-Db40i0bi.js"),
+			"./Pages/Master/vendor-alamat/Edit.jsx": () => import("./assets/Edit-DmhFUcJ7.js"),
+			"./Pages/Master/vendor-alamat/Index.jsx": () => import("./assets/Index-DM-c8R5K.js"),
+			"./Pages/Master/vendor-alamat/Show.jsx": () => import("./assets/Show-BBkPG-qo.js"),
+			"./Pages/MdiIcons.jsx": () => import("./assets/MdiIcons-DfW-FdAS.js"),
+			"./Pages/Notifications.jsx": () => import("./assets/Notifications-DB_wNKyt.js"),
+			"./Pages/Settings.jsx": () => import("./assets/Settings-DDCZyljs.js"),
+			"./Pages/SignIn.jsx": () => import("./assets/SignIn-D7owPPNk.js"),
+			"./Pages/SignUp.jsx": () => import("./assets/SignUp-CHz7sKlE.js"),
+			"./Pages/Tables.jsx": () => import("./assets/Tables-NaYmKawj.js"),
+			"./Pages/Transaksi/Invoice/Form.jsx": () => import("./assets/Form-C406t_ys.js"),
+			"./Pages/Transaksi/Invoice/Index.jsx": () => import("./assets/Index-DS5Rxq_F.js"),
+			"./Pages/Transaksi/Order/Form.jsx": () => import("./assets/Form-CapS4toY.js"),
+			"./Pages/Transaksi/Order/Index.jsx": () => import("./assets/Index-vOGmvlaK.js"),
+			"./Pages/Transaksi/Packing/Form.jsx": () => import("./assets/Form-5xSKcWnp.js"),
+			"./Pages/Transaksi/Packing/Index.jsx": () => import("./assets/Index-B2XYxp1I.js"),
+			"./Pages/Typography.jsx": () => import("./assets/Typography-CFfQVwFj.js")
 		}))[`./Pages/${name}.jsx`]();
 		module.default.layout = module.default.layout || ((page) => /* @__PURE__ */ jsx(LayoutUser, { children: page }));
 		return module;

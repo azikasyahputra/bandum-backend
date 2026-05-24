@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\MasterTableConfig;
+use App\Models\User;
 use App\Repositories\Contracts\MasterRepositoryContract;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,9 +33,27 @@ class MasterDataService
 
         $this->repository->resolveForeignKeys($items, $config->selectOptions());
 
+        $rawItems = $items->items();
+        if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
+            $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
+                collect($rawItems)->pluck('iUpdatedid')
+            )->unique()->filter()->values();
+
+            if ($userIds->isNotEmpty()) {
+                $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+                foreach ($rawItems as $item) {
+                    $item->vCreator = isset($item->iCreatedid) && $users->has($item->iCreatedid) ? $users[$item->iCreatedid] : null;
+                    $item->vUpdater = isset($item->iUpdatedid) && $users->has($item->iUpdatedid) ? $users[$item->iUpdatedid] : null;
+                }
+            }
+        }
+
         $searchValues = [];
         foreach ($columns as $col) {
             $searchValues[$col] = $request->query($col, '');
+        }
+        foreach (['tCreated_from', 'tCreated_to', 'tUpdated_from', 'tUpdated_to'] as $param) {
+            $searchValues[$param] = $request->query($param, '');
         }
 
         return inertia('Master/' . $config->tableRoute() . '/Index', [
@@ -63,6 +82,7 @@ class MasterDataService
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $config->fieldType($c)]),
             'selects' => $this->repository->selectData($columns, $config->selectOptions(), fn ($col) => $config->enumOptions($col)),
             'primaryKey' => $config->primaryKey(),
+            'audit' => $this->resolveAudit($item),
         ]);
     }
 
@@ -127,6 +147,7 @@ class MasterDataService
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $config->fieldType($c)]),
             'selects' => $this->repository->selectData($columns, $config->selectOptions(), fn ($col) => $config->enumOptions($col)),
             'primaryKey' => $config->primaryKey(),
+            'audit' => $this->resolveAudit($item),
         ]);
     }
 
@@ -169,5 +190,31 @@ class MasterDataService
         $this->repository->delete($item, $config->useSoftDelete());
 
         return redirect("/master/{$config->tableRoute()}")->with('success', 'Data berhasil dihapus.');
+    }
+
+    private function resolveAudit($item): ?array
+    {
+        if (!isset($item->iCreatedid) && !isset($item->iUpdatedid) && !isset($item->tCreated) && !isset($item->tUpdated)) {
+            return null;
+        }
+
+        $audit = [
+            'creator' => null,
+            'updater' => null,
+            'createdAt' => $item->tCreated ?? null,
+            'updatedAt' => $item->tUpdated ?? null,
+        ];
+
+        if (isset($item->iCreatedid)) {
+            $creator = User::find($item->iCreatedid);
+            $audit['creator'] = $creator?->name;
+        }
+
+        if (isset($item->iUpdatedid)) {
+            $updater = User::find($item->iUpdatedid);
+            $audit['updater'] = $updater?->name;
+        }
+
+        return $audit;
     }
 }

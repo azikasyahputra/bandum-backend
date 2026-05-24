@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from "@inertiajs/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function Form() {
     const { props } = usePage();
@@ -7,10 +7,20 @@ export default function Form() {
     const [processing, setProcessing] = useState(false);
     const [suratJalan, setSuratJalan] = useState(null);
     const [fakturPajak, setFakturPajak] = useState(null);
+    const [dragField, setDragField] = useState(null);
 
-    const handleUpload = (field) => {
-        const input = document.getElementById(`file-${field}`);
-        if (input) input.click();
+    const sjRef = useRef(null);
+    const fpRef = useRef(null);
+
+    const handleDrop = (field, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragField(null);
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+            if (field === "vSuratJalan") setSuratJalan(file);
+            else setFakturPajak(file);
+        }
     };
 
     const handleFileChange = (field, e) => {
@@ -52,24 +62,20 @@ export default function Form() {
                 .compact-card .compact-table td { vertical-align: middle; }
                 .compact-card .btn-sm-custom { font-size: 13px; padding: 5px 14px; }
                 .compact-card .action-bar { border-top: 1px solid #eee; margin-top: 12px; padding-top: 12px; }
-                .upload-area { cursor: pointer; border: 1px dashed #d1d5db; border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
-                .upload-area:hover { border-color: #3b82f6; background: #f0f7ff; }
+                .upload-square { width: 100%; height: 150px; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+                .upload-square:hover { border-color: #3b82f6; background: #f0f7ff; }
+                .upload-square.dragover { border-color: #365cf5; background: #f0f4ff; }
+                .upload-square.has-file { border-color: #365cf5; background: #f9fafb; }
+                .upload-square .preview-img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+                .upload-square .overlay-bar { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 11px; padding: 4px 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .upload-square .upload-icon { font-size: 24px; color: #9ca3af; }
+                .upload-square .upload-text { font-size: 12px; color: #9ca3af; margin-top: 6px; text-align: center; padding: 0 8px; line-height: 1.3; }
             `}</style>
 
             <div className="form-elements-wrapper compact-card">
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="card-style mb-30">
-                            <div className="d-flex justify-content-between align-items-center mb-10">
-                                <h6 className="mb-0" style={{ fontSize: 15 }}>{title}</h6>
-                                <Link href="/transaksi/invoice" className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
-                                    <i className="lni lni-arrow-left mr-5"></i> Kembali
-                                </Link>
-                            </div>
-
-                            <h6 className="section-title" style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
-                                Informasi Invoice
-                            </h6>
                             <div className="row">
                                 <div className="col-12 col-md-6 col-lg-3">
                                     <div className="input-style-1">
@@ -146,53 +152,93 @@ export default function Form() {
 
                             <hr />
 
-                            <h6 className="section-title" style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
-                                Dokumen
-                            </h6>
                             <div className="row">
                                 <div className="col-12 col-md-6">
                                     <div className="input-style-1">
                                         <label>Surat Jalan</label>
-                                        <div className="upload-area" onClick={() => handleUpload("vSuratJalan")}>
-                                            <i className="lni lni-upload" style={{ fontSize: 16, color: "#6b7280" }}></i>
-                                            {suratJalan ? (
-                                                <span style={{ fontSize: 13 }}>{suratJalan.name}</span>
-                                            ) : order?.vSuratJalan ? (
-                                                <a href={fileUrl(order.vSuratJalan)} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: 13, color: "#3b82f6" }}>
-                                                    <i className="lni lni-eye mr-5"></i> Lihat file
-                                                </a>
-                                            ) : (
-                                                <span style={{ fontSize: 13, color: "#9ca3af" }}>Klik untuk upload</span>
-                                            )}
+                                        <div
+                                            className={`upload-square ${dragField === "vSuratJalan" ? "dragover" : ""} ${suratJalan || order?.vSuratJalan ? "has-file" : ""}`}
+                                            onClick={() => sjRef.current?.click()}
+                                            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragField("vSuratJalan"); }}
+                                            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragField(null); }}
+                                            onDrop={(e) => handleDrop("vSuratJalan", e)}
+                                        >
+                                            {(() => {
+                                                const previewSrc = suratJalan?.type?.startsWith("image/") ? URL.createObjectURL(suratJalan) : (order?.vSuratJalan && /\.(jpe?g|png)$/i.test(order.vSuratJalan) ? fileUrl(order.vSuratJalan) : null);
+                                                if (previewSrc) {
+                                                    return <>
+                                                        <img src={previewSrc} alt="" className="preview-img" />
+                                                        <div className="overlay-bar">{suratJalan?.name || order?.vSuratJalan?.split("/")?.pop() || ""}</div>
+                                                    </>;
+                                                }
+                                                if (suratJalan || order?.vSuratJalan) {
+                                                    return <>
+                                                        <i className="lni lni-file lni-upload"></i>
+                                                        <div className="upload-text">{suratJalan?.name || order?.vSuratJalan?.split("/")?.pop()}</div>
+                                                    </>;
+                                                }
+                                                return <>
+                                                    <i className="lni lni-upload upload-icon"></i>
+                                                    <div className="upload-text">Klik atau seret file</div>
+                                                </>;
+                                            })()}
                                         </div>
-                                        <input id="file-vSuratJalan" type="file" accept=".jpeg,.jpg,.png,.pdf" style={{ display: "none" }} onChange={(e) => handleFileChange("vSuratJalan", e)} />
+                                        <input ref={sjRef} id="file-vSuratJalan" type="file" accept=".jpeg,.jpg,.png,.pdf" style={{ display: "none" }} onChange={(e) => handleFileChange("vSuratJalan", e)} />
+                                        {(suratJalan || order?.vSuratJalan) && (
+                                            <div style={{ textAlign: "right", marginTop: 6 }}>
+                                                <a href={suratJalan ? URL.createObjectURL(suratJalan) : fileUrl(order.vSuratJalan)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#365cf5", textDecoration: "none" }}>
+                                                    <i className="lni lni-eye" style={{ fontSize: 14 }}></i>
+                                                    Lihat File
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="col-12 col-md-6">
                                     <div className="input-style-1">
                                         <label>Faktur Pajak</label>
-                                        <div className="upload-area" onClick={() => handleUpload("vFakturPajak")}>
-                                            <i className="lni lni-upload" style={{ fontSize: 16, color: "#6b7280" }}></i>
-                                            {fakturPajak ? (
-                                                <span style={{ fontSize: 13 }}>{fakturPajak.name}</span>
-                                            ) : order?.vFakturPajak ? (
-                                                <a href={fileUrl(order.vFakturPajak)} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: 13, color: "#3b82f6" }}>
-                                                    <i className="lni lni-eye mr-5"></i> Lihat file
-                                                </a>
-                                            ) : (
-                                                <span style={{ fontSize: 13, color: "#9ca3af" }}>Klik untuk upload</span>
-                                            )}
+                                        <div
+                                            className={`upload-square ${dragField === "vFakturPajak" ? "dragover" : ""} ${fakturPajak || order?.vFakturPajak ? "has-file" : ""}`}
+                                            onClick={() => fpRef.current?.click()}
+                                            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragField("vFakturPajak"); }}
+                                            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragField(null); }}
+                                            onDrop={(e) => handleDrop("vFakturPajak", e)}
+                                        >
+                                            {(() => {
+                                                const previewSrc = fakturPajak?.type?.startsWith("image/") ? URL.createObjectURL(fakturPajak) : (order?.vFakturPajak && /\.(jpe?g|png)$/i.test(order.vFakturPajak) ? fileUrl(order.vFakturPajak) : null);
+                                                if (previewSrc) {
+                                                    return <>
+                                                        <img src={previewSrc} alt="" className="preview-img" />
+                                                        <div className="overlay-bar">{fakturPajak?.name || order?.vFakturPajak?.split("/")?.pop() || ""}</div>
+                                                    </>;
+                                                }
+                                                if (fakturPajak || order?.vFakturPajak) {
+                                                    return <>
+                                                        <i className="lni lni-file lni-upload"></i>
+                                                        <div className="upload-text">{fakturPajak?.name || order?.vFakturPajak?.split("/")?.pop()}</div>
+                                                    </>;
+                                                }
+                                                return <>
+                                                    <i className="lni lni-upload upload-icon"></i>
+                                                    <div className="upload-text">Klik atau seret file</div>
+                                                </>;
+                                            })()}
                                         </div>
-                                        <input id="file-vFakturPajak" type="file" accept=".jpeg,.jpg,.png,.pdf" style={{ display: "none" }} onChange={(e) => handleFileChange("vFakturPajak", e)} />
+                                        <input ref={fpRef} id="file-vFakturPajak" type="file" accept=".jpeg,.jpg,.png,.pdf" style={{ display: "none" }} onChange={(e) => handleFileChange("vFakturPajak", e)} />
+                                        {(fakturPajak || order?.vFakturPajak) && (
+                                            <div style={{ textAlign: "right", marginTop: 6 }}>
+                                                <a href={fakturPajak ? URL.createObjectURL(fakturPajak) : fileUrl(order.vFakturPajak)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#365cf5", textDecoration: "none" }}>
+                                                    <i className="lni lni-eye" style={{ fontSize: 14 }}></i>
+                                                    Lihat File
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
                             <hr />
 
-                            <h6 className="section-title" style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
-                                Detail Barang
-                            </h6>
 
                             <div className="table-wrapper table-responsive">
                                 <table className="table compact-table">
@@ -231,7 +277,10 @@ export default function Form() {
                                 </table>
                             </div>
 
-                            <div className="d-flex justify-content-end action-bar" style={{ gap: 8 }}>
+                            <div className="d-flex justify-content-between align-items-center action-bar">
+                                <Link href="/transaksi/invoice" className="main-btn danger-btn-outline rounded-full btn-hover btn-sm">
+                                    <i className="lni lni-arrow-left me-1"></i> Kembali
+                                </Link>
                                 <button type="button" disabled={processing || (!suratJalan && !fakturPajak)} className="main-btn primary-btn-outline rounded-full btn-hover btn-sm" onClick={handleSave}>
                                     {processing ? "Menyimpan..." : "Simpan Dokumen"}
                                 </button>

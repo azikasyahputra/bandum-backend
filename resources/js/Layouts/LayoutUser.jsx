@@ -7,7 +7,13 @@ import Footer from "./Footer";
 export default function LayoutUser({ children }) {
     const { component, props } = usePage();
     const { title } = props;
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(() => {
+        try {
+            return localStorage.getItem("sidebarMini") === "true";
+        } catch {
+            return false;
+        }
+    });
     const [scrolled, setScrolled] = useState(false);
     
     const pageTitle = title || component || "Dashboard";
@@ -21,7 +27,11 @@ export default function LayoutUser({ children }) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const toggleSidebar = () => setSidebarOpen((open) => !open);
+    const toggleSidebar = () => setSidebarOpen((open) => {
+        const next = !open;
+        localStorage.setItem("sidebarMini", next);
+        return next;
+    });
     const closeSidebar = () => setSidebarOpen(false);
 
     return (
@@ -30,7 +40,7 @@ export default function LayoutUser({ children }) {
                 <div className="spinner"></div>
             </div>
 
-            <Sidebar sidebarOpen={sidebarOpen} />
+            <Sidebar sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
             <button
                 type="button"

@@ -73,12 +73,7 @@ export default function Header({ sidebarOpen, toggleSidebar, scrolled }) {
                                     className="main-btn primary-btn btn-hover"
                                     onClick={toggleSidebar}
                                 >
-                                    <i
-                                        className={`lni ${
-                                            sidebarOpen ? "lni-menu" : "lni-chevron-left"
-                                        } me-2`}
-                                    ></i>
-                                    Menu
+                                    <i className="lni lni-menu"></i>
                                 </button>
                             </div>
                             <div className="header-search d-none d-md-flex">

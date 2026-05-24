@@ -41,16 +41,6 @@ export default function Form() {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="card-style mb-30">
-                            <div className="d-flex justify-content-between align-items-center mb-10">
-                                <h6 className="mb-0" style={{ fontSize: 15 }}>{title}</h6>
-                                <Link href="/transaksi/packing" className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
-                                    <i className="lni lni-arrow-left mr-5"></i> Kembali
-                                </Link>
-                            </div>
-
-                            <h6 className="section-title" style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
-                                Informasi Packing
-                            </h6>
                             <div className="row">
                                 <div className="col-12 col-md-6 col-lg-3">
                                     <div className="input-style-1">
@@ -129,9 +119,6 @@ export default function Form() {
 
                             <hr />
 
-                            <h6 className="section-title" style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
-                                Detail Barang
-                            </h6>
 
                             <div className="table-wrapper table-responsive">
                                 <table className="table compact-table">
@@ -170,13 +157,16 @@ export default function Form() {
                                 </table>
                             </div>
 
-                            {item.eStatus !== "Confirm" && (
-                                <div className="d-flex justify-content-end action-bar" style={{ gap: 8 }}>
+                            <div className="d-flex justify-content-between align-items-center action-bar">
+                                <Link href="/transaksi/packing" className="main-btn danger-btn-outline rounded-full btn-hover btn-sm">
+                                    <i className="lni lni-arrow-left me-1"></i> Kembali
+                                </Link>
+                                {item.eStatus !== "Confirm" && (
                                     <button type="button" disabled={processing} className="main-btn success-btn-outline rounded-full btn-hover btn-sm" onClick={handleConfirm}>
                                         {processing ? "Memproses..." : "Confirm"}
                                     </button>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

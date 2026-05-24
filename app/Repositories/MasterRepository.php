@@ -45,6 +45,18 @@ class MasterRepository implements MasterRepositoryContract
             }
         }
 
+        foreach (['tCreated', 'tUpdated'] as $col) {
+            $from = $queryParams[$col . '_from'] ?? null;
+            $to = $queryParams[$col . '_to'] ?? null;
+
+            if ($from !== null && $from !== '') {
+                $query->where($col, '>=', $from);
+            }
+            if ($to !== null && $to !== '') {
+                $query->where($col, '<=', $to . ' 23:59:59');
+            }
+        }
+
         return $query->paginate(20)->withQueryString();
     }
 
@@ -55,17 +67,28 @@ class MasterRepository implements MasterRepositoryContract
 
     public function create(string $modelClass, array $data): Model
     {
-        return $modelClass::create($data);
+        $model = new $modelClass;
+        if ($modelClass !== \App\Models\User::class) {
+            $model->timestamps = false;
+        }
+        $model->fill($data)->save();
+        return $model;
     }
 
     public function update(Model $item, array $data): bool
     {
+        if (get_class($item) !== \App\Models\User::class) {
+            $item->timestamps = false;
+        }
         return $item->update($data);
     }
 
     public function delete(Model $item, bool $useSoftDelete): bool
     {
         if ($useSoftDelete) {
+            if (get_class($item) !== \App\Models\User::class) {
+                $item->timestamps = false;
+            }
             return $item->update([
                 'eDeleted' => 'ya',
                 'iUpdatedid' => auth()->id() ?? 1,

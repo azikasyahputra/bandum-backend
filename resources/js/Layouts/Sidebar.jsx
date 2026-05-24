@@ -127,22 +127,24 @@ const sidebarGroups = [
     },
 ];
 
-function SidebarLink({ href, children, className = "" }) {
+function SidebarLink({ href, children, className = "", title, onClick }) {
     if (href === "#") {
         return (
-            <a href={href} className={className}>
+            <a href={href} className={className} data-title={title} onClick={onClick}>
                 {children}
             </a>
         );
     }
     return (
-        <Link href={href} className={className}>
+        <Link href={href} className={className} data-title={title} onClick={onClick}>
             {children}
         </Link>
     );
 }
 
-function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
+function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar }) {
+    const [showFlyout, setShowFlyout] = useState(false);
+
     if (item.divider) {
         return (
             <span className="divider">
@@ -153,10 +155,61 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
 
     const isActive = item.href && item.href !== "#" && currentUrl === item.href;
 
+    if (mini) {
+        return (
+            <li
+                className={`nav-item ${isActive ? "active" : ""} ${item.items ? "nav-item-has-children" : ""}`}
+                onMouseEnter={() => setShowFlyout(true)}
+                onMouseLeave={() => setShowFlyout(false)}
+            >
+                {!item.items ? (
+                    <SidebarLink href={item.href} title={item.label} onClick={onToggleSidebar}>
+                        <span className="icon">
+                            <i className={item.icon}></i>
+                        </span>
+                    </SidebarLink>
+                ) : (
+                    <button type="button" className={isOpen ? "" : "collapsed"} onClick={() => { onToggleSidebar(); onToggle(); }}>
+                        <span className="icon">
+                            <i className={item.icon}></i>
+                        </span>
+                    </button>
+                )}
+                {showFlyout && (
+                    <div className="sidebar-flyout">
+                        <div className="sidebar-flyout-header">{item.label}</div>
+                        {item.items ? (
+                            <ul className="sidebar-flyout-menu">
+                                {item.items.map((child) => (
+                                    <li key={child.label}>
+                                        <SidebarLink
+                                            href={child.href}
+                                            className={
+                                                child.href !== "#" && currentUrl === child.href
+                                                    ? "active"
+                                                    : ""
+                                            }
+                                        >
+                                            {child.label}
+                                        </SidebarLink>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <SidebarLink href={item.href} className="sidebar-flyout-link">
+                                {item.label}
+                            </SidebarLink>
+                        )}
+                    </div>
+                )}
+            </li>
+        );
+    }
+
     if (!item.items) {
         return (
             <li className={`nav-item ${isActive ? "active" : ""}`}>
-                <SidebarLink href={item.href}>
+                <SidebarLink href={item.href} title={item.label}>
                     <span className="icon">
                         <i className={item.icon}></i>
                     </span>
@@ -177,6 +230,7 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
                 aria-controls={collapseId}
                 aria-expanded={isOpen}
                 aria-label={`Toggle ${item.label} navigation`}
+                data-title={item.label}
             >
                 <span className="icon">
                     <i className={item.icon}></i>
@@ -206,7 +260,7 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle }) {
     );
 }
 
-export default function Sidebar({ sidebarOpen }) {
+export default function Sidebar({ sidebarOpen, onToggleSidebar }) {
     const { url } = usePage();
     const [openMenus, setOpenMenus] = useState(() =>
         sidebarGroups.reduce((menus, item) => {
@@ -231,7 +285,8 @@ export default function Sidebar({ sidebarOpen }) {
         <aside className={`sidebar-nav-wrapper ${sidebarOpen ? "active" : ""}`}>
             <div className="navbar-logo">
                 <Link href="/">
-                    <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: 1 }}>BandumOffice</span>
+                    <span className="logo-full" style={{ fontSize: 20, fontWeight: 700, letterSpacing: 1 }}>BandumOffice</span>
+                    <span className="logo-mini" style={{ display: "none", fontSize: 18, fontWeight: 700 }}>BO</span>
                 </Link>
             </div>
 
@@ -244,6 +299,8 @@ export default function Sidebar({ sidebarOpen }) {
                             currentUrl={url}
                             isOpen={Boolean(openMenus[item.id])}
                             onToggle={() => toggleMenu(item.id)}
+                            mini={sidebarOpen}
+                            onToggleSidebar={onToggleSidebar}
                         />
                     ))}
                 </ul>

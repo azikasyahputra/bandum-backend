@@ -120,8 +120,8 @@ p {
   box-sizing: border-box;
   padding: 25px 30px;
   position: relative;
-  box-shadow: 0px 12px 24px -4px rgba(145, 158, 171, 0.12), 0px 0px 2px 0px rgba(145, 158, 171, 0.2);
-  border-radius: 7px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
 }
 @media (max-width: 767px) {
   .card-style {
@@ -2071,25 +2071,26 @@ h6,
 /* ===== input style ===== */
 .input-style-1 {
   position: relative;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 .input-style-1 label {
   font-size: 14px;
   font-weight: 500;
   color: #1A2142;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .input-style-1 input,
 .input-style-1 textarea {
   width: 100%;
-  background: rgba(239, 239, 239, 0.5);
-  border: 1px solid #e5e5e5;
-  border-radius: 4px;
-  padding: 16px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
   color: #1e1f24;
   resize: none;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 @media (max-width: 767px) {
   .input-style-1 input,
@@ -2101,6 +2102,8 @@ h6,
 .input-style-1 textarea:focus {
   border-color: #365CF5;
   background: #fff;
+  box-shadow: 0 0 0 3px rgba(54, 92, 245, 0.1);
+  outline: none;
 }
 .input-style-1 input[type=date], .input-style-1 input[type=time],
 .input-style-1 textarea[type=date],
@@ -2120,7 +2123,7 @@ h6,
 
 .input-style-2 {
   position: relative;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   z-index: 1;
 }
 .input-style-2 label {
@@ -2128,23 +2131,26 @@ h6,
   font-weight: 500;
   color: #1A2142;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .input-style-2 input,
 .input-style-2 textarea {
   width: 100%;
-  background: rgba(239, 239, 239, 0.5);
-  border: 1px solid #e5e5e5;
-  border-radius: 4px;
-  padding: 16px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
   color: #1e1f24;
   resize: none;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 .input-style-2 input:focus,
 .input-style-2 textarea:focus {
   border-color: #365CF5;
   background: #fff;
+  box-shadow: 0 0 0 3px rgba(54, 92, 245, 0.1);
+  outline: none;
 }
 .input-style-2 input[type=date], .input-style-2 input[type=time],
 .input-style-2 textarea[type=date],
@@ -2167,31 +2173,34 @@ h6,
 
 .input-style-3 {
   position: relative;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 .input-style-3 label {
   font-size: 14px;
   font-weight: 500;
   color: #1A2142;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .input-style-3 input,
 .input-style-3 textarea {
   width: 100%;
-  background: rgba(239, 239, 239, 0.5);
-  border: 1px solid #e5e5e5;
-  border-radius: 4px;
-  padding: 16px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
   padding-left: 45px;
+  font-size: 14px;
   color: #1e1f24;
   resize: none;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 .input-style-3 input:focus,
 .input-style-3 textarea:focus {
   border-color: #365CF5;
   background: #fff;
+  box-shadow: 0 0 0 3px rgba(54, 92, 245, 0.1);
+  outline: none;
 }
 .input-style-3 .icon {
   position: absolute;
@@ -2203,14 +2212,14 @@ h6,
 
 /* ========= select style ========== */
 .select-style-1 {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 .select-style-1 label {
   font-size: 14px;
   font-weight: 500;
   color: #1A2142;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .select-style-1 .select-position {
   position: relative;
@@ -2243,24 +2252,26 @@ h6,
 }
 .select-style-1 .select-position select {
   width: 100%;
-  background: transparent;
-  border: 1px solid #e5e5e5;
-  border-radius: 10px;
-  padding: 16px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
   padding-right: 38px;
+  font-size: 14px;
   color: #5d657b;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  -webkit-transition: all 0.3s ease-out 0s;
-  -moz-transition: all 0.3s ease-out 0s;
-  -ms-transition: all 0.3s ease-out 0s;
-  -o-transition: all 0.3s ease-out 0s;
-  transition: all 0.3s ease-out 0s;
+  -webkit-transition: all 0.2s ease-out 0s;
+  -moz-transition: all 0.2s ease-out 0s;
+  -ms-transition: all 0.2s ease-out 0s;
+  -o-transition: all 0.2s ease-out 0s;
+  transition: all 0.2s ease-out 0s;
 }
 .select-style-1 .select-position select:focus {
   border-color: #365CF5;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(54, 92, 245, 0.1);
 }
 .select-style-1 .select-position select.light-bg {
   background: rgba(239, 239, 239, 0.5);
@@ -2273,7 +2284,7 @@ h6,
 }
 
 .select-style-2 {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 .select-style-2 .select-position {
   position: relative;
@@ -2316,24 +2327,26 @@ h6,
 }
 .select-style-2 .select-position select {
   width: 100%;
-  background: transparent;
-  border: 1px solid #e5e5e5;
-  border-radius: 10px;
-  padding: 16px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
   padding-right: 38px;
+  font-size: 14px;
   color: #5d657b;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  -webkit-transition: all 0.3s ease-out 0s;
-  -moz-transition: all 0.3s ease-out 0s;
-  -ms-transition: all 0.3s ease-out 0s;
-  -o-transition: all 0.3s ease-out 0s;
-  transition: all 0.3s ease-out 0s;
+  -webkit-transition: all 0.2s ease-out 0s;
+  -moz-transition: all 0.2s ease-out 0s;
+  -ms-transition: all 0.2s ease-out 0s;
+  -o-transition: all 0.2s ease-out 0s;
+  transition: all 0.2s ease-out 0s;
 }
 .select-style-2 .select-position select:focus {
   border-color: #365CF5;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(54, 92, 245, 0.1);
 }
 .select-style-2 .select-position select.light-bg {
   background: rgba(239, 239, 239, 0.5);
@@ -2348,7 +2361,7 @@ h6,
 }
 
 .select-style-3 {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 .select-style-3 .select-position {
   position: relative;
@@ -2381,23 +2394,26 @@ h6,
 }
 .select-style-3 .select-position select {
   width: 100%;
-  background: transparent;
-  border: transparent;
-  border-radius: 10px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
   padding-right: 38px;
-  color: #000;
+  font-size: 14px;
+  color: #5d657b;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  -webkit-transition: all 0.3s ease-out 0s;
-  -moz-transition: all 0.3s ease-out 0s;
-  -ms-transition: all 0.3s ease-out 0s;
-  -o-transition: all 0.3s ease-out 0s;
-  transition: all 0.3s ease-out 0s;
+  -webkit-transition: all 0.2s ease-out 0s;
+  -moz-transition: all 0.2s ease-out 0s;
+  -ms-transition: all 0.2s ease-out 0s;
+  -o-transition: all 0.2s ease-out 0s;
+  transition: all 0.2s ease-out 0s;
 }
 .select-style-3 .select-position select:focus {
   border-color: #365CF5;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(54, 92, 245, 0.1);
 }
 .select-style-3 .select-position select.light-bg {
   background: rgba(239, 239, 239, 0.5);
@@ -3737,7 +3753,15 @@ h6,
   display: flex;
   align-items: center;
 }
-.sidebar-nav-wrapper .sidebar-nav ul .nav-item.nav-item-has-children ul li a.active, .sidebar-nav-wrapper .sidebar-nav ul .nav-item.nav-item-has-children ul li a:hover {
+.sidebar-nav-wrapper .sidebar-nav ul .nav-item.nav-item-has-children ul li a.active {
+  color: #fff;
+  background: #365CF5;
+  border-radius: 0;
+  box-shadow: 0 4px 12px rgba(54, 92, 245, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2), inset 0 -2px 3px rgba(0, 0, 0, 0.25);
+  padding: 7px 12px;
+  margin: 4px 0;
+}
+.sidebar-nav-wrapper .sidebar-nav ul .nav-item.nav-item-has-children ul li a:hover {
   color: #1A2142;
 }
 .sidebar-nav-wrapper .sidebar-nav ul .nav-item.nav-item-has-children ul li a i {
@@ -3810,10 +3834,21 @@ h6,
   -o-transition: all 0.3s ease-out 0s;
   transition: all 0.3s ease-out 0s;
 }
-.sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a, .sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a.collapsed, .sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a, .sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a.collapsed {
+.sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a, .sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a.collapsed {
+  color: #fff;
+  background: #365CF5;
+  border-radius: 0;
+  box-shadow: 0 4px 12px rgba(54, 92, 245, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2), inset 0 -2px 3px rgba(0, 0, 0, 0.25);
+  margin: 4px 8px;
+  width: auto;
+}
+.sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a, .sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a.collapsed {
   color: #1A2142;
 }
-.sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a .icon, .sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a.collapsed .icon, .sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a .icon, .sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a.collapsed .icon {
+.sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a .icon, .sidebar-nav-wrapper .sidebar-nav ul .nav-item.active > a.collapsed .icon {
+  color: #fff;
+}
+.sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a .icon, .sidebar-nav-wrapper .sidebar-nav ul .nav-item:hover > a.collapsed .icon {
   color: #365CF5;
 }
 

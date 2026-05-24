@@ -1,14 +1,15 @@
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import InputText from "@/Components/Forms/InputText";
-import InputTextarea from "@/Components/Forms/InputTextarea";
+import InputEditor from "@/Components/Forms/InputEditor";
 import InputFile from "@/Components/Forms/InputFile";
 import InputEnum from "@/Components/Forms/InputEnum";
 import InputSelect from "@/Components/Forms/InputSelect";
 import InputPassword from "@/Components/Forms/InputPassword";
+import FormActions from "@/Components/Forms/FormActions";
 
 export default function Form() {
     const { props } = usePage();
-    const { title, table, fields, fieldLabels, fieldTypes, selects, item, primaryKey } = props;
+    const { title, table, fields, fieldLabels, fieldTypes, selects, item, primaryKey, audit } = props;
 
     const isEdit = !!item;
 
@@ -36,45 +37,53 @@ export default function Form() {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="card-style mb-30">
-                            <div className="d-flex justify-content-between align-items-center mb-25">
-                                <h6 className="mb-0">{title}</h6>
-                                <Link href={`/master/${table}`} className="main-btn primary-btn-outline rounded-full btn-hover btn-sm">
-                                    <i className="lni lni-arrow-left mr-5" style={{ fontSize: 13 }}></i>
-                                    Kembali
-                                </Link>
-                            </div>
-
                             <form onSubmit={submit}>
                                 <div className="row">
-                                <div className="col-12 col-md-6 col-lg-4">
-                                    <InputFile field="vThumbnails" label={fieldLabels["vThumbnails"] || "vThumbnails"} value={data["vThumbnails"] ?? ""} onChange={(v) => setData("vThumbnails", v)} error={errors["vThumbnails"]} />
+                                    <div className="col-12">
+                                        <InputText field="vTitle" label={fieldLabels["vTitle"] || "vTitle"} value={data["vTitle"] ?? ""} onChange={(v) => setData("vTitle", v)} error={errors["vTitle"]} />
+                                    </div>
                                 </div>
-                                <div className="col-12 col-md-6 col-lg-4">
-                                    <InputText field="vTitle" label={fieldLabels["vTitle"] || "vTitle"} value={data["vTitle"] ?? ""} onChange={(v) => setData("vTitle", v)} error={errors["vTitle"]} />
-                                </div>
+                                <div className="row">
+                                    <div className="col-12">
+                                        <InputEditor field="vIsi" label={fieldLabels["vIsi"] || "vIsi"} value={data["vIsi"] ?? ""} onChange={(v) => setData("vIsi", v)} error={errors["vIsi"]} />
+                                    </div>
                                 </div>
 
                                 <div className="row">
-                                <div className="col-12">
-                                    <InputTextarea field="vIsi" label={fieldLabels["vIsi"] || "vIsi"} value={data["vIsi"] ?? ""} onChange={(v) => setData("vIsi", v)} error={errors["vIsi"]} />
+                                    <div className="col-12 col-md-6 col-lg-6">
+                                        <InputFile field="vThumbnails" label={fieldLabels["vThumbnails"] || "vThumbnails"} value={data["vThumbnails"] ?? ""} onChange={(v) => setData("vThumbnails", v)} error={errors["vThumbnails"]} />
+                                    </div>
+                                    <div className="col-12 col-md-6 col-lg-6">
+                                        <InputEnum field="eTampil" label={fieldLabels["eTampil"] || "eTampil"} value={data["eTampil"] ?? ""} onChange={(v) => setData("eTampil", v)} error={errors["eTampil"]} options={selects?.["eTampil"] || []} />
+                                    </div>
                                 </div>
-                                </div>
+                                {audit && (
+                                    <div className="row" style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #eee" }}>
+                                        <div className="col-12">
+                                            <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Audit Trail</p>
+                                            <div className="row">
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Dibuat Oleh</p>
+                                                    <p className="show-field-value">{audit.creator || "-"}</p>
+                                                </div>
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Tanggal Dibuat</p>
+                                                    <p className="show-field-value">{audit.createdAt || "-"}</p>
+                                                </div>
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Diubah Oleh</p>
+                                                    <p className="show-field-value">{audit.updater || "-"}</p>
+                                                </div>
+                                                <div className="col-6 col-md-3">
+                                                    <p className="show-field-label">Tanggal Diubah</p>
+                                                    <p className="show-field-value">{audit.updatedAt || "-"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-                                <div className="row">
-                                <div className="col-12 col-md-6 col-lg-4">
-                                    <InputEnum field="eTampil" label={fieldLabels["eTampil"] || "eTampil"} value={data["eTampil"] ?? ""} onChange={(v) => setData("eTampil", v)} error={errors["eTampil"]} options={selects?.["eTampil"] || []} />
-                                </div>
-                                </div>
-
-                                <div className="d-flex justify-content-end pt-15" style={{ borderTop: "1px solid #eee", marginTop: 8, paddingTop: 12 }}>
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
-                                    >
-                                        {processing ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Simpan"}
-                                    </button>
-                                </div>
+                                <FormActions backUrl={`/master/${table}`} processing={processing} isEdit={isEdit} />
                             </form>
                         </div>
                     </div>

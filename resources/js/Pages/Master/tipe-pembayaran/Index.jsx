@@ -14,6 +14,12 @@ export default function Index() {
     });
     const [inputs, setInputs] = useState(builds);
     const [timers, setTimers] = useState({});
+    const [dateRanges, setDateRanges] = useState({
+        tCreated_from: initialSearch?.tCreated_from || "",
+        tCreated_to: initialSearch?.tCreated_to || "",
+        tUpdated_from: initialSearch?.tUpdated_from || "",
+        tUpdated_to: initialSearch?.tUpdated_to || "",
+    });
 
     const handleSearch = (col, value) => {
         const updated = { ...inputs, [col]: value };
@@ -24,6 +30,9 @@ export default function Index() {
         TABLE_COLUMNS.forEach((c) => {
             if (updated[c]) params[c] = updated[c];
         });
+        Object.entries(dateRanges).forEach(([k, v]) => {
+            if (v) params[k] = v;
+        });
 
         const timer = setTimeout(() => {
             router.get(`/master/tipe-pembayaran`, params, {
@@ -32,6 +41,27 @@ export default function Index() {
             });
         }, 300);
         setTimers((prev) => ({ ...prev, [col]: timer }));
+    };
+
+    const handleDateRange = (field, value) => {
+        const updated = { ...dateRanges, [field]: value };
+        setDateRanges(updated);
+
+        clearTimeout(timers[field]);
+        const params = {};
+        TABLE_COLUMNS.forEach((c) => {
+            if (inputs[c]) params[c] = inputs[c];
+        });
+        Object.entries(updated).forEach(([k, v]) => {
+            if (v) params[k] = v;
+        });
+        const timer = setTimeout(() => {
+            router.get(`/master/${table}`, params, {
+                preserveState: true,
+                replace: true,
+            });
+        }, 300);
+        setTimers((prev) => ({ ...prev, [field]: timer }));
     };
 
     const handleDelete = (id) => {
@@ -150,6 +180,36 @@ export default function Index() {
                                                     />
                                                 </div>
                                             </th>
+                                            <th key="vCreator">
+                                                <h6>Dibuat</h6>
+                                                <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
+                                                        value={dateRanges.tCreated_from}
+                                                        onChange={(e) => handleDateRange("tCreated_from", e.target.value)}
+                                                        placeholder="Dari"
+                                                    />
+                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
+                                                        value={dateRanges.tCreated_to}
+                                                        onChange={(e) => handleDateRange("tCreated_to", e.target.value)}
+                                                        placeholder="Sampai"
+                                                    />
+                                                </div>
+                                            </th>
+                                            <th key="tUpdated">
+                                                <h6>Diubah</h6>
+                                                <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
+                                                        value={dateRanges.tUpdated_from}
+                                                        onChange={(e) => handleDateRange("tUpdated_from", e.target.value)}
+                                                        placeholder="Dari"
+                                                    />
+                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
+                                                        value={dateRanges.tUpdated_to}
+                                                        onChange={(e) => handleDateRange("tUpdated_to", e.target.value)}
+                                                        placeholder="Sampai"
+                                                    />
+                                                </div>
+                                            </th>
                                             <th><h6>Aksi</h6></th>
                                         </tr>
                                     </thead>
@@ -159,7 +219,9 @@ export default function Index() {
                                                 <tr key={item[primaryKey]}>
                                                     <td><p>{items.from + idx}</p></td>
                                                         <td key="vNama"><p>{formatValue("vNama", item["vNama"])}</p></td>
-                                                    <td>
+                                                    <td key="vCreator"><p>{item?.tCreated ? String(item.tCreated) : "-"} / {item?.vCreator || (item?.iCreatedid ? "-" : "-")}</p></td>
+                                                        <td key="tUpdated"><p>{item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-"} / {item?.vUpdater || (item?.iUpdatedid ? "-" : "-")}</p></td>
+                                                        <td>
                                                         <div className="action d-flex" style={{ gap: 5, alignItems: "center" }}>
                                                             {relatedTables && relatedTables.map((rt) => (
                                                                 <Link
@@ -201,7 +263,7 @@ export default function Index() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={3} style={{ textAlign: "center", padding: "20px 8px" }}>
+                                                <td colSpan={5} style={{ textAlign: "center", padding: "20px 8px" }}>
                                                     <p style={{ color: "#6b7280" }}>Belum ada data.</p>
                                                 </td>
                                             </tr>

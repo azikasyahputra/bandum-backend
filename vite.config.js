@@ -13,4 +13,13 @@ export default defineConfig({
         }),
         react(),
     ],
+    optimizeDeps: {
+        include: [
+            "ckeditor5",
+            "@ckeditor/ckeditor5-react",
+        ],
+    },
+    ssr: {
+        noExternal: ["ckeditor5", "@ckeditor/ckeditor5-react"],
+    },
 })
