@@ -7,10 +7,8 @@ namespace App\Services;
 use App\Models\Gudang;
 use App\Models\User;
 use App\Repositories\Contracts\GudangRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class GudangService
 {
@@ -22,13 +20,35 @@ class GudangService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Gudang::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($eStatus = $request->query('eStatus')) {
+            $query->where('eStatus', $eStatus);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
@@ -53,6 +73,14 @@ class GudangService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+        foreach ($columns as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
         return [
             'title' => $this->label(),
             'table' => $this->tableRoute(),
@@ -62,6 +90,7 @@ class GudangService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +106,7 @@ class GudangService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +122,7 @@ class GudangService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +168,7 @@ class GudangService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -198,33 +227,26 @@ class GudangService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vNama',
-  1 => 'eStatus',
-);
+        return [
+            'vNama',
+            'eStatus',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vNama' => 'Nama',
             'eStatus' => 'Status',
             default => ucwords(str_replace(['_', 'v', 'i', 'e', 'd'], ' ', preg_replace('/^[viepd]/s', '', $col))),
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'eStatus' => 'enum',
             default => 'text',
         };
@@ -232,14 +254,12 @@ class GudangService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -252,6 +272,20 @@ class GudangService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+
+        foreach ($this->columns() as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -282,8 +316,8 @@ class GudangService
 
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eStatus' => [   [   'value' => 'baru',    'label' => 'Baru'],    [   'value' => 'proses',    'label' => 'Proses'],    [   'value' => 'dikirim',    'label' => 'Dikirim'],    [   'value' => 'selesai',    'label' => 'Selesai'],    [   'value' => 'batal',    'label' => 'Batal']],
+        return match ($col) {
+            'eStatus' => [['value' => 'baru', 'label' => 'Baru'], ['value' => 'proses', 'label' => 'Proses'], ['value' => 'dikirim', 'label' => 'Dikirim'], ['value' => 'selesai', 'label' => 'Selesai'], ['value' => 'batal', 'label' => 'Batal']],
             default => [],
         };
     }

@@ -6,31 +6,43 @@ namespace App\Services;
 
 use App\Models\KlasifikasiPerusahaan;
 use App\Models\User;
-use App\Repositories\Contracts\KlasifikasiPerusahaanRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class KlasifikasiPerusahaanService
 {
-    public function __construct(
-        private KlasifikasiPerusahaanRepositoryContract $repository,
-    ) {}
-
     public function paginated(Request $request): array
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = KlasifikasiPerusahaan::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -38,6 +50,7 @@ class KlasifikasiPerusahaanService
 
             if ($userIds->isNotEmpty()) {
                 $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+
                 foreach ($rawItems as $item) {
                     $item->vCreator = isset($item->iCreatedid) && $users->has($item->iCreatedid) ? $users[$item->iCreatedid] : null;
                     $item->vUpdater = isset($item->iUpdatedid) && $users->has($item->iUpdatedid) ? $users[$item->iUpdatedid] : null;
@@ -67,7 +80,7 @@ class KlasifikasiPerusahaanService
 
     public function detail(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = KlasifikasiPerusahaan::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -77,7 +90,7 @@ class KlasifikasiPerusahaanService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +106,7 @@ class KlasifikasiPerusahaanService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -123,13 +136,16 @@ class KlasifikasiPerusahaanService
         $validated['iCreatedid'] = auth()->id() ?? 1;
         $validated['tCreated'] = now();
 
-        $model = $this->repository->create($validated);
+        $model = new KlasifikasiPerusahaan;
+        $model->timestamps = false;
+        $model->fill($validated)->save();
+
         return $model->{$this->primaryKey()};
     }
 
     public function edit(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = KlasifikasiPerusahaan::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -139,7 +155,7 @@ class KlasifikasiPerusahaanService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -147,7 +163,7 @@ class KlasifikasiPerusahaanService
 
     public function update(Request $request, int $id): void
     {
-        $item = $this->repository->findOrFail($id);
+        $item = KlasifikasiPerusahaan::where('iId', $id)->firstOrFail();
 
         $skip = ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'];
         $fillable = array_values(array_filter((new KlasifikasiPerusahaan)->getFillable(), fn ($c) => !in_array($c, $skip)));
@@ -172,16 +188,21 @@ class KlasifikasiPerusahaanService
         $validated['iUpdatedid'] = auth()->id() ?? 1;
         $validated['tUpdated'] = now();
 
-        $this->repository->update($item, $validated);
+        $item->timestamps = false;
+        $item->update($validated);
     }
 
     public function destroy(int $id): void
     {
-        $item = $this->repository->findOrFail($id);
-        $this->repository->delete($item);
-    }
+        $item = KlasifikasiPerusahaan::where('iId', $id)->firstOrFail();
 
-    // ---- Config methods ----
+        $item->timestamps = false;
+        $item->update([
+            'eDeleted' => 'Ya',
+            'iUpdatedid' => auth()->id() ?? 1,
+            'tUpdated' => now(),
+        ]);
+    }
 
     private function label(): string
     {
@@ -198,31 +219,24 @@ class KlasifikasiPerusahaanService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vNama',
-);
+        return [
+            'vNama',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vNama' => 'Nama',
             default => ucwords(str_replace(['_', 'v', 'i', 'e', 'd'], ' ', preg_replace('/^[viepd]/s', '', $col))),
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'iId' => 'select',
             default => 'text',
         };
@@ -230,14 +244,12 @@ class KlasifikasiPerusahaanService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -278,8 +290,22 @@ class KlasifikasiPerusahaanService
         return $audit;
     }
 
+    private function selectData(array $fields): array
+    {
+        $selects = [];
+
+        foreach ($fields as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
+    }
+
     private function enumOptions(string $col): array
     {
-            return [];
+        return [];
     }
 }

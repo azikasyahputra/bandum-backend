@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Customer;
+use App\Models\KategoriPerusahaan;
+use App\Models\KlasifikasiPerusahaan;
 use App\Models\User;
 use App\Repositories\Contracts\CustomerRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class CustomerService
 {
@@ -22,15 +22,129 @@ class CustomerService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Customer::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($vEmail = $request->query('vEmail')) {
+            $query->where('vEmail', 'like', "%{$vEmail}%");
+        }
+
+        if ($iIdUser = $request->query('iIdUser')) {
+            $query->where('iIdUser', $iIdUser);
+        }
+
+        if ($iIdJenisperusahaan = $request->query('iIdJenisperusahaan')) {
+            $query->where('iIdJenisperusahaan', $iIdJenisperusahaan);
+        }
+
+        if ($iIdKlasifikasiperusahaan = $request->query('iIdKlasifikasiperusahaan')) {
+            $query->where('iIdKlasifikasiperusahaan', $iIdKlasifikasiperusahaan);
+        }
+
+        if ($vProfilepic = $request->query('vProfilepic')) {
+            $query->where('vProfilepic', 'like', "%{$vProfilepic}%");
+        }
+
+        if ($vKtp = $request->query('vKtp')) {
+            $query->where('vKtp', 'like', "%{$vKtp}%");
+        }
+
+        if ($vFilektp = $request->query('vFilektp')) {
+            $query->where('vFilektp', 'like', "%{$vFilektp}%");
+        }
+
+        if ($vNpwp = $request->query('vNpwp')) {
+            $query->where('vNpwp', 'like', "%{$vNpwp}%");
+        }
+
+        if ($vFilenpwp = $request->query('vFilenpwp')) {
+            $query->where('vFilenpwp', 'like', "%{$vFilenpwp}%");
+        }
+
+        if ($vSiup = $request->query('vSiup')) {
+            $query->where('vSiup', 'like', "%{$vSiup}%");
+        }
+
+        if ($vFilesiup = $request->query('vFilesiup')) {
+            $query->where('vFilesiup', 'like', "%{$vFilesiup}%");
+        }
+
+        if ($vFileaktapendirian = $request->query('vFileaktapendirian')) {
+            $query->where('vFileaktapendirian', 'like', "%{$vFileaktapendirian}%");
+        }
+
+        if ($vFiledomisiliperusahaan = $request->query('vFiledomisiliperusahaan')) {
+            $query->where('vFiledomisiliperusahaan', 'like', "%{$vFiledomisiliperusahaan}%");
+        }
+
+        if ($eTipe = $request->query('eTipe')) {
+            $query->where('eTipe', $eTipe);
+        }
+
+        if ($eVerifikasi = $request->query('eVerifikasi')) {
+            $query->where('eVerifikasi', $eVerifikasi);
+        }
+
+        if ($isTrustedBuyer = $request->query('isTrustedBuyer')) {
+            $query->where('isTrustedBuyer', $isTrustedBuyer);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+        if (!empty($rawItems)) {
+            $iIdUserIds = collect($rawItems)->pluck('iIdUser')->unique()->filter()->values();
+            if ($iIdUserIds->isNotEmpty()) {
+                $related = User::whereIn('id', $iIdUserIds)->pluck('name', 'id');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdUser)) {
+                        $item->iIdUser = $related->get($item->iIdUser);
+                    }
+                }
+            }
+
+            $iIdJenisperusahaanIds = collect($rawItems)->pluck('iIdJenisperusahaan')->unique()->filter()->values();
+            if ($iIdJenisperusahaanIds->isNotEmpty()) {
+                $related = KategoriPerusahaan::whereIn('iId', $iIdJenisperusahaanIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdJenisperusahaan)) {
+                        $item->iIdJenisperusahaan = $related->get($item->iIdJenisperusahaan);
+                    }
+                }
+            }
+
+            $iIdKlasifikasiperusahaanIds = collect($rawItems)->pluck('iIdKlasifikasiperusahaan')->unique()->filter()->values();
+            if ($iIdKlasifikasiperusahaanIds->isNotEmpty()) {
+                $related = KlasifikasiPerusahaan::whereIn('iId', $iIdKlasifikasiperusahaanIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKlasifikasiperusahaan)) {
+                        $item->iIdKlasifikasiperusahaan = $related->get($item->iIdKlasifikasiperusahaan);
+                    }
+                }
+            }
+        }
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -53,6 +167,18 @@ class CustomerService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+        $selects['iIdUser'] = User::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['id as value', 'name as label']);
+        $selects['iIdJenisperusahaan'] = KategoriPerusahaan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKlasifikasiperusahaan'] = KlasifikasiPerusahaan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($columns as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
         return [
             'title' => $this->label(),
             'table' => $this->tableRoute(),
@@ -62,6 +188,7 @@ class CustomerService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +204,7 @@ class CustomerService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +220,7 @@ class CustomerService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +266,7 @@ class CustomerService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -198,40 +325,32 @@ class CustomerService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-  1 => 'vEmail',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vNama',
-  1 => 'vEmail',
-  2 => 'iIdUser',
-  3 => 'iIdJenisperusahaan',
-  4 => 'iIdKlasifikasiperusahaan',
-  5 => 'vProfilepic',
-  6 => 'vKtp',
-  7 => 'vFilektp',
-  8 => 'vNpwp',
-  9 => 'vFilenpwp',
-  10 => 'vSiup',
-  11 => 'vFilesiup',
-  12 => 'vFileaktapendirian',
-  13 => 'vFiledomisiliperusahaan',
-  14 => 'eTipe',
-  15 => 'eVerifikasi',
-  16 => 'isTrustedBuyer',
-);
+        return [
+            'vNama',
+            'vEmail',
+            'iIdUser',
+            'iIdJenisperusahaan',
+            'iIdKlasifikasiperusahaan',
+            'vProfilepic',
+            'vKtp',
+            'vFilektp',
+            'vNpwp',
+            'vFilenpwp',
+            'vSiup',
+            'vFilesiup',
+            'vFileaktapendirian',
+            'vFiledomisiliperusahaan',
+            'eTipe',
+            'eVerifikasi',
+            'isTrustedBuyer',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vNama' => 'Nama',
             'vEmail' => 'Email',
             'iIdUser' => 'User',
@@ -253,9 +372,9 @@ class CustomerService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vEmail' => 'email',
             'vProfilepic' => 'file',
             'vKtp' => 'file',
@@ -273,27 +392,26 @@ class CustomerService
 
     private function relatedTables(): array
     {
-        return array (
-  0 => 
-  array (
-    'route' => 'customer-alamat',
-    'label' => 'Alamat',
-    'foreignKey' => 'iIdCustomer',
-  ),
-);
+        return [
+            [
+                'route' => 'customer-alamat',
+                'label' => 'Alamat',
+                'foreignKey' => 'iIdCustomer',
+            ],
+        ];
     }
 
     private function fileColumns(): array
     {
-        return array (
-  0 => 'vProfilepic',
-  1 => 'vKtp',
-  2 => 'vFilektp',
-  3 => 'vFilenpwp',
-  4 => 'vFilesiup',
-  5 => 'vFileaktapendirian',
-  6 => 'vFiledomisiliperusahaan',
-);
+        return [
+            'vProfilepic',
+            'vKtp',
+            'vFilektp',
+            'vFilenpwp',
+            'vFilesiup',
+            'vFileaktapendirian',
+            'vFiledomisiliperusahaan',
+        ];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -306,6 +424,23 @@ class CustomerService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+        $selects['iIdUser'] = User::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['id as value', 'name as label']);
+        $selects['iIdJenisperusahaan'] = KategoriPerusahaan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKlasifikasiperusahaan'] = KlasifikasiPerusahaan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($this->columns() as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -337,8 +472,8 @@ class CustomerService
     private function enumOptions(string $col): array
     {
             return match ($col) {
-            'eVerifikasi' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
-            'isTrustedBuyer' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+            'eVerifikasi' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
+            'isTrustedBuyer' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

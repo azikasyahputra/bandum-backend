@@ -7,10 +7,8 @@ namespace App\Services;
 use App\Models\Faq;
 use App\Models\User;
 use App\Repositories\Contracts\FaqRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class FaqService
 {
@@ -22,13 +20,39 @@ class FaqService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Faq::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vTitle = $request->query('vTitle')) {
+            $query->where('vTitle', 'like', "%{$vTitle}%");
+        }
+
+        if ($vIsi = $request->query('vIsi')) {
+            $query->where('vIsi', 'like', "%{$vIsi}%");
+        }
+
+        if ($eTampil = $request->query('eTampil')) {
+            $query->where('eTampil', $eTampil);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
@@ -53,6 +77,14 @@ class FaqService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+        foreach ($columns as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
         return [
             'title' => $this->label(),
             'table' => $this->tableRoute(),
@@ -62,6 +94,7 @@ class FaqService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +110,7 @@ class FaqService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +126,7 @@ class FaqService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +172,7 @@ class FaqService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -198,26 +231,18 @@ class FaqService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vTitle',
-  1 => 'vIsi',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vTitle',
-  1 => 'vIsi',
-  2 => 'eTampil',
-);
+        return [
+            'vTitle',
+            'vIsi',
+            'eTampil',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vTitle' => 'Title',
             'vIsi' => 'Isi',
             'eTampil' => 'Tampil',
@@ -225,9 +250,9 @@ class FaqService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vIsi' => 'textarea',
             'eTampil' => 'enum',
             default => 'text',
@@ -236,14 +261,12 @@ class FaqService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -256,6 +279,20 @@ class FaqService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+
+        foreach ($this->columns() as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -286,8 +323,8 @@ class FaqService
 
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eTampil' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eTampil' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

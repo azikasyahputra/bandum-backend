@@ -4,33 +4,125 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Vendor;
 use App\Models\User;
-use App\Repositories\Contracts\VendorRepositoryContract;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Vendor;
+use App\Models\VendorAlamat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class VendorService
 {
-    public function __construct(
-        private VendorRepositoryContract $repository,
-    ) {}
-
     public function paginated(Request $request): array
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Vendor::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($vProfilepic = $request->query('vProfilepic')) {
+            $query->where('vProfilepic', 'like', "%{$vProfilepic}%");
+        }
+
+        if ($eTipe = $request->query('eTipe')) {
+            $query->where('eTipe', $eTipe);
+        }
+
+        if ($vNamadirektur = $request->query('vNamadirektur')) {
+            $query->where('vNamadirektur', 'like', "%{$vNamadirektur}%");
+        }
+
+        if ($dTanggalberdiri = $request->query('dTanggalberdiri')) {
+            $query->where('dTanggalberdiri', $dTanggalberdiri);
+        }
+
+        if ($eJumlahkaryawan = $request->query('eJumlahkaryawan')) {
+            $query->where('eJumlahkaryawan', $eJumlahkaryawan);
+        }
+
+        if ($vOfficephone = $request->query('vOfficephone')) {
+            $query->where('vOfficephone', 'like', "%{$vOfficephone}%");
+        }
+
+        if ($vNamapic = $request->query('vNamapic')) {
+            $query->where('vNamapic', 'like', "%{$vNamapic}%");
+        }
+
+        if ($vKontakpic = $request->query('vKontakpic')) {
+            $query->where('vKontakpic', 'like', "%{$vKontakpic}%");
+        }
+
+        if ($iIdAlamatutama = $request->query('iIdAlamatutama')) {
+            if (is_numeric($iIdAlamatutama)) {
+                $query->where('iIdAlamatutama', $iIdAlamatutama);
+            } else {
+                $relatedIds = VendorAlamat::where('vNama', 'like', "%{$iIdAlamatutama}%")->pluck('iId');
+                $query->whereIn('iIdAlamatutama', $relatedIds);
+            }
+        }
+
+        if ($vSiup = $request->query('vSiup')) {
+            $query->where('vSiup', 'like', "%{$vSiup}%");
+        }
+
+        if ($vFilesiup = $request->query('vFilesiup')) {
+            $query->where('vFilesiup', 'like', "%{$vFilesiup}%");
+        }
+
+        if ($vFileaktapendirian = $request->query('vFileaktapendirian')) {
+            $query->where('vFileaktapendirian', 'like', "%{$vFileaktapendirian}%");
+        }
+
+        if ($vFiledomisiliperusahaan = $request->query('vFiledomisiliperusahaan')) {
+            $query->where('vFiledomisiliperusahaan', 'like', "%{$vFiledomisiliperusahaan}%");
+        }
+
+        if ($vDeskripsi = $request->query('vDeskripsi')) {
+            $query->where('vDeskripsi', 'like', "%{$vDeskripsi}%");
+        }
+
+        if ($eVerifikasi = $request->query('eVerifikasi')) {
+            $query->where('eVerifikasi', $eVerifikasi);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+
+        if (!empty($rawItems)) {
+            $ids = collect($rawItems)->pluck('iIdAlamatutama')->unique()->filter()->values();
+
+            if ($ids->isNotEmpty()) {
+                $related = VendorAlamat::whereIn('iId', $ids)->pluck('vNama', 'iId');
+
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdAlamatutama)) {
+                        $item->iIdAlamatutama = $related->get($item->iIdAlamatutama);
+                    }
+                }
+            }
+        }
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -38,6 +130,7 @@ class VendorService
 
             if ($userIds->isNotEmpty()) {
                 $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+
                 foreach ($rawItems as $item) {
                     $item->vCreator = isset($item->iCreatedid) && $users->has($item->iCreatedid) ? $users[$item->iCreatedid] : null;
                     $item->vUpdater = isset($item->iUpdatedid) && $users->has($item->iUpdatedid) ? $users[$item->iUpdatedid] : null;
@@ -67,7 +160,7 @@ class VendorService
 
     public function detail(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Vendor::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -77,7 +170,7 @@ class VendorService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +186,7 @@ class VendorService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -123,13 +216,16 @@ class VendorService
         $validated['iCreatedid'] = auth()->id() ?? 1;
         $validated['tCreated'] = now();
 
-        $model = $this->repository->create($validated);
+        $model = new Vendor;
+        $model->timestamps = false;
+        $model->fill($validated)->save();
+
         return $model->{$this->primaryKey()};
     }
 
     public function edit(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Vendor::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -139,7 +235,7 @@ class VendorService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -147,7 +243,7 @@ class VendorService
 
     public function update(Request $request, int $id): void
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Vendor::where('iId', $id)->firstOrFail();
 
         $skip = ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'];
         $fillable = array_values(array_filter((new Vendor)->getFillable(), fn ($c) => !in_array($c, $skip)));
@@ -172,16 +268,21 @@ class VendorService
         $validated['iUpdatedid'] = auth()->id() ?? 1;
         $validated['tUpdated'] = now();
 
-        $this->repository->update($item, $validated);
+        $item->timestamps = false;
+        $item->update($validated);
     }
 
     public function destroy(int $id): void
     {
-        $item = $this->repository->findOrFail($id);
-        $this->repository->delete($item);
-    }
+        $item = Vendor::where('iId', $id)->firstOrFail();
 
-    // ---- Config methods ----
+        $item->timestamps = false;
+        $item->update([
+            'eDeleted' => 'Ya',
+            'iUpdatedid' => auth()->id() ?? 1,
+            'tUpdated' => now(),
+        ]);
+    }
 
     private function label(): string
     {
@@ -198,39 +299,31 @@ class VendorService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-  1 => 'vNamapic',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vNama',
-  1 => 'vProfilepic',
-  2 => 'eTipe',
-  3 => 'vNamadirektur',
-  4 => 'dTanggalberdiri',
-  5 => 'eJumlahkaryawan',
-  6 => 'vOfficephone',
-  7 => 'vNamapic',
-  8 => 'vKontakpic',
-  9 => 'iIdAlamatutama',
-  10 => 'vSiup',
-  11 => 'vFilesiup',
-  12 => 'vFileaktapendirian',
-  13 => 'vFiledomisiliperusahaan',
-  14 => 'vDeskripsi',
-  15 => 'eVerifikasi',
-);
+        return [
+            'vNama',
+            'vProfilepic',
+            'eTipe',
+            'vNamadirektur',
+            'dTanggalberdiri',
+            'eJumlahkaryawan',
+            'vOfficephone',
+            'vNamapic',
+            'vKontakpic',
+            'iIdAlamatutama',
+            'vSiup',
+            'vFilesiup',
+            'vFileaktapendirian',
+            'vFiledomisiliperusahaan',
+            'vDeskripsi',
+            'eVerifikasi',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vNama' => 'Nama',
             'vProfilepic' => 'Foto Profil',
             'eTipe' => 'Tipe',
@@ -251,9 +344,9 @@ class VendorService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vProfilepic' => 'file',
             'eTipe' => 'enum',
             'dTanggalberdiri' => 'date',
@@ -270,24 +363,23 @@ class VendorService
 
     private function relatedTables(): array
     {
-        return array (
-  0 => 
-  array (
-    'route' => 'vendor-alamat',
-    'label' => 'Alamat',
-    'foreignKey' => 'iIdVendor',
-  ),
-);
+        return [
+            [
+                'route' => 'vendor-alamat',
+                'label' => 'Alamat',
+                'foreignKey' => 'iIdVendor',
+            ],
+        ];
     }
 
     private function fileColumns(): array
     {
-        return array (
-  0 => 'vProfilepic',
-  1 => 'vFilesiup',
-  2 => 'vFileaktapendirian',
-  3 => 'vFiledomisiliperusahaan',
-);
+        return [
+            'vProfilepic',
+            'vFilesiup',
+            'vFileaktapendirian',
+            'vFiledomisiliperusahaan',
+        ];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -328,10 +420,26 @@ class VendorService
         return $audit;
     }
 
+    private function selectData(array $fields): array
+    {
+        $selects = [];
+
+        $selects['iIdAlamatutama'] = VendorAlamat::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($fields as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
+    }
+
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eVerifikasi' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eVerifikasi' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

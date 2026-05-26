@@ -7,10 +7,8 @@ namespace App\Services;
 use App\Models\Ekspedisi;
 use App\Models\User;
 use App\Repositories\Contracts\EkspedisiRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class EkspedisiService
 {
@@ -22,13 +20,31 @@ class EkspedisiService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Ekspedisi::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
@@ -53,6 +69,8 @@ class EkspedisiService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+
         return [
             'title' => $this->label(),
             'table' => $this->tableRoute(),
@@ -62,6 +80,7 @@ class EkspedisiService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +96,7 @@ class EkspedisiService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +112,7 @@ class EkspedisiService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +158,7 @@ class EkspedisiService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -198,31 +217,24 @@ class EkspedisiService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vNama',
-);
+        return [
+            'vNama',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vNama' => 'Nama',
             default => ucwords(str_replace(['_', 'v', 'i', 'e', 'd'], ' ', preg_replace('/^[viepd]/s', '', $col))),
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'iId' => 'select',
             default => 'text',
         };
@@ -230,14 +242,12 @@ class EkspedisiService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -250,6 +260,13 @@ class EkspedisiService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -276,10 +293,5 @@ class EkspedisiService
         }
 
         return $audit;
-    }
-
-    private function enumOptions(string $col): array
-    {
-            return [];
     }
 }

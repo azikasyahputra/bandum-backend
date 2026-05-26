@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Barang;
+use App\Models\Brand;
+use App\Models\Kategori;
 use App\Models\Subkategori;
 use App\Models\User;
 use App\Repositories\Contracts\BarangRepositoryContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class BarangService
 {
@@ -22,15 +23,104 @@ class BarangService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Barang::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($iIdBrand = $request->query('iIdBrand')) {
+            if (is_numeric($iIdBrand)) {
+                $query->where('iIdBrand', $iIdBrand);
+            } else {
+                $relatedIds = Brand::where('vNama', 'like', "%{$iIdBrand}%")->pluck('iId');
+                $query->whereIn('iIdBrand', $relatedIds);
+            }
+        }
+
+        if ($iIdKategori = $request->query('iIdKategori')) {
+            if (is_numeric($iIdKategori)) {
+                $query->where('iIdKategori', $iIdKategori);
+            } else {
+                $relatedIds = Kategori::where('vNama', 'like', "%{$iIdKategori}%")->pluck('iId');
+                $query->whereIn('iIdKategori', $relatedIds);
+            }
+        }
+
+        if ($iIdSubkategori = $request->query('iIdSubkategori')) {
+            if (is_numeric($iIdSubkategori)) {
+                $query->where('iIdSubkategori', $iIdSubkategori);
+            } else {
+                $relatedIds = Subkategori::where('vNama', 'like', "%{$iIdSubkategori}%")->pluck('iId');
+                $query->whereIn('iIdSubkategori', $relatedIds);
+            }
+        }
+
+        if ($vDeskripsisingkat = $request->query('vDeskripsisingkat')) {
+            $query->where('vDeskripsisingkat', 'like', "%{$vDeskripsisingkat}%");
+        }
+
+        if ($vDeskripsidetail = $request->query('vDeskripsidetail')) {
+            $query->where('vDeskripsidetail', 'like', "%{$vDeskripsidetail}%");
+        }
+
+        if ($eBestselling = $request->query('eBestselling')) {
+            $query->where('eBestselling', $eBestselling);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+        if (!empty($rawItems)) {
+            $iIdBrandIds = collect($rawItems)->pluck('iIdBrand')->unique()->filter()->values();
+            if ($iIdBrandIds->isNotEmpty()) {
+                $related = Brand::whereIn('iId', $iIdBrandIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdBrand)) {
+                        $item->iIdBrand = $related->get($item->iIdBrand);
+                    }
+                }
+            }
+
+            $iIdKategoriIds = collect($rawItems)->pluck('iIdKategori')->unique()->filter()->values();
+            if ($iIdKategoriIds->isNotEmpty()) {
+                $related = Kategori::whereIn('iId', $iIdKategoriIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKategori)) {
+                        $item->iIdKategori = $related->get($item->iIdKategori);
+                    }
+                }
+            }
+
+            $iIdSubkategoriIds = collect($rawItems)->pluck('iIdSubkategori')->unique()->filter()->values();
+            if ($iIdSubkategoriIds->isNotEmpty()) {
+                $related = Subkategori::whereIn('iId', $iIdSubkategoriIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdSubkategori)) {
+                        $item->iIdSubkategori = $related->get($item->iIdSubkategori);
+                    }
+                }
+            }
+        }
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -53,7 +143,17 @@ class BarangService
             $searchValues[$param] = $request->query($param, '');
         }
 
-        $selects = $this->repository->selectData($columns);
+        $selects = [];
+        $selects['iIdBrand'] = Brand::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKategori'] = Kategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdSubkategori'] = Subkategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($columns as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
 
         $kategoriId = $request->query('iIdKategori');
         if ($kategoriId) {
@@ -90,7 +190,7 @@ class BarangService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -106,7 +206,7 @@ class BarangService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -152,7 +252,7 @@ class BarangService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -211,25 +311,17 @@ class BarangService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-            0 => 'vNama',
-            1 => 'vDeskripsisingkat',
-        );
-    }
-
     private function columns(): array
     {
-        return array (
-            0 => 'vNama',
-            1 => 'iIdBrand',
-            2 => 'iIdKategori',
-            3 => 'iIdSubkategori',
-            4 => 'vDeskripsisingkat',
-            5 => 'vDeskripsidetail',
-            6 => 'eBestselling',
-        );
+        return [
+            'vNama',
+            'iIdBrand',
+            'iIdKategori',
+            'iIdSubkategori',
+            'vDeskripsisingkat',
+            'vDeskripsidetail',
+            'eBestselling',
+        ];
     }
 
     private function columnLabel(string $col): string
@@ -248,7 +340,7 @@ class BarangService
 
     private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vDeskripsidetail' => 'textarea',
             'eBestselling' => 'enum',
             default => 'text',
@@ -257,26 +349,23 @@ class BarangService
 
     private function relatedTables(): array
     {
-        return array (
-  0 => 
-  array (
-    'route' => 'barang-kemasan',
-    'label' => 'Kemasan',
-    'foreignKey' => 'iIdBarang',
-  ),
-  1 => 
-  array (
-    'route' => 'barang-media',
-    'label' => 'Media',
-    'foreignKey' => 'iIdBarang',
-  ),
-);
+        return [
+            [
+                'route' => 'barang-kemasan',
+                'label' => 'Kemasan',
+                'foreignKey' => 'iIdBarang',
+            ],
+            [
+                'route' => 'barang-media',
+                'label' => 'Media',
+                'foreignKey' => 'iIdBarang',
+            ],
+        ];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -289,6 +378,23 @@ class BarangService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+        $selects['iIdBrand'] = Brand::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKategori'] = Kategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdSubkategori'] = Subkategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($this->columns() as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -319,8 +425,8 @@ class BarangService
 
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eBestselling' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eBestselling' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

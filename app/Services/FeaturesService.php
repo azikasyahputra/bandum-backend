@@ -7,10 +7,8 @@ namespace App\Services;
 use App\Models\Features;
 use App\Models\User;
 use App\Repositories\Contracts\FeaturesRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class FeaturesService
 {
@@ -22,13 +20,43 @@ class FeaturesService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Features::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vTitle = $request->query('vTitle')) {
+            $query->where('vTitle', 'like', "%{$vTitle}%");
+        }
+
+        if ($vDesc = $request->query('vDesc')) {
+            $query->where('vDesc', 'like', "%{$vDesc}%");
+        }
+
+        if ($vIcon = $request->query('vIcon')) {
+            $query->where('vIcon', 'like', "%{$vIcon}%");
+        }
+
+        if ($eTampil = $request->query('eTampil')) {
+            $query->where('eTampil', $eTampil);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
@@ -53,6 +81,14 @@ class FeaturesService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+        foreach ($columns as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
         return [
             'title' => $this->label(),
             'table' => $this->tableRoute(),
@@ -62,6 +98,7 @@ class FeaturesService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +114,7 @@ class FeaturesService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +130,7 @@ class FeaturesService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +176,7 @@ class FeaturesService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -198,27 +235,19 @@ class FeaturesService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vTitle',
-  1 => 'vDesc',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vTitle',
-  1 => 'vDesc',
-  2 => 'vIcon',
-  3 => 'eTampil',
-);
+        return [
+            'vTitle',
+            'vDesc',
+            'vIcon',
+            'eTampil',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vTitle' => 'Title',
             'vDesc' => 'Deskripsi',
             'vIcon' => 'Icon',
@@ -227,9 +256,9 @@ class FeaturesService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vDesc' => 'textarea',
             'vIcon' => 'file',
             'eTampil' => 'enum',
@@ -239,15 +268,14 @@ class FeaturesService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-  0 => 'vIcon',
-);
+        return [
+            'vIcon',
+        ];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -260,6 +288,20 @@ class FeaturesService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+
+        foreach ($this->columns() as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -290,8 +332,8 @@ class FeaturesService
 
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eTampil' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eTampil' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

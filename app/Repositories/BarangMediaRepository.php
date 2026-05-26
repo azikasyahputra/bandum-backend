@@ -13,42 +13,36 @@ class BarangMediaRepository implements BarangMediaRepositoryContract
 {
     public function paginate(array $columns, array $searchCols, array $queryParams): LengthAwarePaginator
     {
-        $query = BarangMedia::query();
+        $query = BarangMedia::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $query->where(function ($q) {
-            $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-        });
-
-        $searchCols = array_unique(array_merge($columns, $searchCols));
-        $selectOpts = $this->selectOptions();
-
-        foreach ($searchCols as $col) {
-            $val = $queryParams[$col] ?? null;
-            if ($val === null || $val === '') {
-                continue;
-            }
-
-            if (isset($selectOpts[$col])) {
-                $config = $selectOpts[$col];
-                $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
-                $query->whereIn($col, $relatedIds);
-            } elseif (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
-            } else {
-                $query->where($col, 'like', "%{$val}%");
-            }
+        if ($iIdBarang = $queryParams['iIdBarang'] ?? null) {
+            $query->where('iIdBarang', $iIdBarang);
         }
 
-        foreach (['tCreated', 'tUpdated'] as $col) {
-            $from = $queryParams[$col . '_from'] ?? null;
-            $to = $queryParams[$col . '_to'] ?? null;
+        if ($eTipe = $queryParams['eTipe'] ?? null) {
+            $query->where('eTipe', $eTipe);
+        }
 
-            if ($from !== null && $from !== '') {
-                $query->where($col, '>=', $from);
-            }
-            if ($to !== null && $to !== '') {
-                $query->where($col, '<=', $to . ' 23:59:59');
-            }
+        if ($vLink = $queryParams['vLink'] ?? null) {
+            $query->where('vLink', 'like', "%{$vLink}%");
+        }
+
+        if ($tCreatedFrom = $queryParams['tCreated_from'] ?? null) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $queryParams['tCreated_to'] ?? null) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $queryParams['tUpdated_from'] ?? null) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $queryParams['tUpdated_to'] ?? null) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
         }
 
         return $query->paginate(20)->withQueryString();
@@ -77,7 +71,7 @@ class BarangMediaRepository implements BarangMediaRepositoryContract
     {
         $item->timestamps = false;
         return $item->update([
-            'eDeleted' => 'ya',
+            'eDeleted' => 'Ya',
             'iUpdatedid' => auth()->id() ?? 1,
             'tUpdated' => now(),
         ]);
@@ -85,50 +79,11 @@ class BarangMediaRepository implements BarangMediaRepositoryContract
 
     public function resolveForeignKeys(LengthAwarePaginator $paginator): void
     {
-        $selectOpts = $this->selectOptions();
-
-        if (empty($selectOpts)) {
-            return;
-        }
-
-        $items = $paginator->items();
-        if (empty($items)) {
-            return;
-        }
-
-        foreach ($selectOpts as $col => $config) {
-            $ids = collect($items)->pluck($col)->unique()->filter()->values();
-            if ($ids->isEmpty()) {
-                continue;
-            }
-
-            $class = $config['model'];
-            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
-
-            foreach ($items as $item) {
-                $fk = $item->getAttribute($col);
-                if ($fk !== null && $related->has($fk)) {
-                    $item->setAttribute($col, $related[$fk]);
-                }
-            }
-        }
     }
 
     public function selectData(array $fields): array
     {
         $selects = [];
-        $selectOpts = $this->selectOptions();
-
-        foreach ($fields as $col) {
-            $config = $selectOpts[$col] ?? null;
-
-            if ($config) {
-                $class = $config['model'];
-                $selects[$col] = $class::where(function ($q) {
-                    $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-                })->get([$config['value'] . ' as value', $config['label'] . ' as label']);
-            }
-        }
 
         foreach ($fields as $col) {
             $enumOptions = $this->enumOptions($col);
@@ -138,12 +93,6 @@ class BarangMediaRepository implements BarangMediaRepositoryContract
         }
 
         return $selects;
-    }
-
-    private function selectOptions(): array
-    {
-        return array (
-);
     }
 
     private function enumOptions(string $col): array

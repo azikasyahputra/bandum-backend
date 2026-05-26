@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Models\Kategori;
 use App\Models\Subkategori;
 use App\Repositories\Contracts\SubkategoriRepositoryContract;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -13,42 +14,37 @@ class SubkategoriRepository implements SubkategoriRepositoryContract
 {
     public function paginate(array $columns, array $searchCols, array $queryParams): LengthAwarePaginator
     {
-        $query = Subkategori::query();
+        $query = Subkategori::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $query->where(function ($q) {
-            $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-        });
-
-        $searchCols = array_unique(array_merge($columns, $searchCols));
-        $selectOpts = $this->selectOptions();
-
-        foreach ($searchCols as $col) {
-            $val = $queryParams[$col] ?? null;
-            if ($val === null || $val === '') {
-                continue;
-            }
-
-            if (isset($selectOpts[$col])) {
-                $config = $selectOpts[$col];
-                $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
-                $query->whereIn($col, $relatedIds);
-            } elseif (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
+        if ($iIdKategori = $queryParams['iIdKategori'] ?? null) {
+            if (is_numeric($iIdKategori)) {
+                $query->where('iIdKategori', $iIdKategori);
             } else {
-                $query->where($col, 'like', "%{$val}%");
+                $relatedIds = Kategori::where('vNama', 'like', "%{$iIdKategori}%")->pluck('iId');
+                $query->whereIn('iIdKategori', $relatedIds);
             }
         }
 
-        foreach (['tCreated', 'tUpdated'] as $col) {
-            $from = $queryParams[$col . '_from'] ?? null;
-            $to = $queryParams[$col . '_to'] ?? null;
+        if ($vNama = $queryParams['vNama'] ?? null) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
 
-            if ($from !== null && $from !== '') {
-                $query->where($col, '>=', $from);
-            }
-            if ($to !== null && $to !== '') {
-                $query->where($col, '<=', $to . ' 23:59:59');
-            }
+        if ($tCreatedFrom = $queryParams['tCreated_from'] ?? null) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $queryParams['tCreated_to'] ?? null) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $queryParams['tUpdated_from'] ?? null) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $queryParams['tUpdated_to'] ?? null) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
         }
 
         return $query->paginate(20)->withQueryString();
@@ -77,7 +73,7 @@ class SubkategoriRepository implements SubkategoriRepositoryContract
     {
         $item->timestamps = false;
         return $item->update([
-            'eDeleted' => 'ya',
+            'eDeleted' => 'Ya',
             'iUpdatedid' => auth()->id() ?? 1,
             'tUpdated' => now(),
         ]);
@@ -85,31 +81,23 @@ class SubkategoriRepository implements SubkategoriRepositoryContract
 
     public function resolveForeignKeys(LengthAwarePaginator $paginator): void
     {
-        $selectOpts = $this->selectOptions();
-
-        if (empty($selectOpts)) {
-            return;
-        }
-
         $items = $paginator->items();
+
         if (empty($items)) {
             return;
         }
 
-        foreach ($selectOpts as $col => $config) {
-            $ids = collect($items)->pluck($col)->unique()->filter()->values();
-            if ($ids->isEmpty()) {
-                continue;
-            }
+        $ids = collect($items)->pluck('iIdKategori')->unique()->filter()->values();
 
-            $class = $config['model'];
-            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
+        if ($ids->isEmpty()) {
+            return;
+        }
 
-            foreach ($items as $item) {
-                $fk = $item->getAttribute($col);
-                if ($fk !== null && $related->has($fk)) {
-                    $item->setAttribute($col, $related[$fk]);
-                }
+        $related = Kategori::whereIn('iId', $ids)->pluck('vNama', 'iId');
+
+        foreach ($items as $item) {
+            if ($related->has($item->iIdKategori)) {
+                $item->iIdKategori = $related->get($item->iIdKategori);
             }
         }
     }
@@ -117,18 +105,8 @@ class SubkategoriRepository implements SubkategoriRepositoryContract
     public function selectData(array $fields): array
     {
         $selects = [];
-        $selectOpts = $this->selectOptions();
 
-        foreach ($fields as $col) {
-            $config = $selectOpts[$col] ?? null;
-
-            if ($config) {
-                $class = $config['model'];
-                $selects[$col] = $class::where(function ($q) {
-                    $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-                })->get([$config['value'] . ' as value', $config['label'] . ' as label']);
-            }
-        }
+        $selects['iIdKategori'] = Kategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
 
         foreach ($fields as $col) {
             $enumOptions = $this->enumOptions($col);
@@ -144,22 +122,10 @@ class SubkategoriRepository implements SubkategoriRepositoryContract
     {
         return Subkategori::where('iIdKategori', $kategoriId)
             ->where(function ($q) {
-                $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
+                $q->where('eDeleted', '!=', 'Ya')->orWhereNull('eDeleted');
             })
             ->get(['iId as value', 'vNama as label'])
             ->toArray();
-    }
-
-    private function selectOptions(): array
-    {
-        return array (
-  'iIdKategori' => 
-  array (
-    'model' => '\\App\\Models\\Kategori',
-    'value' => 'iId',
-    'label' => 'vNama',
-  ),
-);
     }
 
     private function enumOptions(string $col): array

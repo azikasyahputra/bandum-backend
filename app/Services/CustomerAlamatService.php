@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\CustomerAlamat;
+use App\Models\Kecamatan;
+use App\Models\Kelurahan;
+use App\Models\Kota;
+use App\Models\Provinsi;
 use App\Models\User;
 use App\Repositories\Contracts\CustomerAlamatRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class CustomerAlamatService
 {
@@ -22,15 +25,150 @@ class CustomerAlamatService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = CustomerAlamat::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($vAlamat = $request->query('vAlamat')) {
+            $query->where('vAlamat', 'like', "%{$vAlamat}%");
+        }
+
+        if ($iIdCustomer = $request->query('iIdCustomer')) {
+            if (is_numeric($iIdCustomer)) {
+                $query->where('iIdCustomer', $iIdCustomer);
+            } else {
+                $relatedIds = Customer::where('vNama', 'like', "%{$iIdCustomer}%")->pluck('iId');
+                $query->whereIn('iIdCustomer', $relatedIds);
+            }
+        }
+
+        if ($iIdProvinsi = $request->query('iIdProvinsi')) {
+            if (is_numeric($iIdProvinsi)) {
+                $query->where('iIdProvinsi', $iIdProvinsi);
+            } else {
+                $relatedIds = Provinsi::where('vNama', 'like', "%{$iIdProvinsi}%")->pluck('iId');
+                $query->whereIn('iIdProvinsi', $relatedIds);
+            }
+        }
+
+        if ($iIdKota = $request->query('iIdKota')) {
+            if (is_numeric($iIdKota)) {
+                $query->where('iIdKota', $iIdKota);
+            } else {
+                $relatedIds = Kota::where('vNama', 'like', "%{$iIdKota}%")->pluck('iId');
+                $query->whereIn('iIdKota', $relatedIds);
+            }
+        }
+
+        if ($iIdKecamatan = $request->query('iIdKecamatan')) {
+            if (is_numeric($iIdKecamatan)) {
+                $query->where('iIdKecamatan', $iIdKecamatan);
+            } else {
+                $relatedIds = Kecamatan::where('vNama', 'like', "%{$iIdKecamatan}%")->pluck('iId');
+                $query->whereIn('iIdKecamatan', $relatedIds);
+            }
+        }
+
+        if ($iIdKelurahan = $request->query('iIdKelurahan')) {
+            if (is_numeric($iIdKelurahan)) {
+                $query->where('iIdKelurahan', $iIdKelurahan);
+            } else {
+                $relatedIds = Kelurahan::where('vNama', 'like', "%{$iIdKelurahan}%")->pluck('iId');
+                $query->whereIn('iIdKelurahan', $relatedIds);
+            }
+        }
+
+        if ($vGPS = $request->query('vGPS')) {
+            $query->where('vGPS', 'like', "%{$vGPS}%");
+        }
+
+        if ($vNotelp = $request->query('vNotelp')) {
+            $query->where('vNotelp', 'like', "%{$vNotelp}%");
+        }
+
+        if ($vNohp = $request->query('vNohp')) {
+            $query->where('vNohp', 'like', "%{$vNohp}%");
+        }
+
+        if ($eUtama = $request->query('eUtama')) {
+            $query->where('eUtama', $eUtama);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+        if (!empty($rawItems)) {
+            $iIdCustomerIds = collect($rawItems)->pluck('iIdCustomer')->unique()->filter()->values();
+            if ($iIdCustomerIds->isNotEmpty()) {
+                $related = Customer::whereIn('iId', $iIdCustomerIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdCustomer)) {
+                        $item->iIdCustomer = $related->get($item->iIdCustomer);
+                    }
+                }
+            }
+
+            $iIdProvinsiIds = collect($rawItems)->pluck('iIdProvinsi')->unique()->filter()->values();
+            if ($iIdProvinsiIds->isNotEmpty()) {
+                $related = Provinsi::whereIn('iId', $iIdProvinsiIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdProvinsi)) {
+                        $item->iIdProvinsi = $related->get($item->iIdProvinsi);
+                    }
+                }
+            }
+
+            $iIdKotaIds = collect($rawItems)->pluck('iIdKota')->unique()->filter()->values();
+            if ($iIdKotaIds->isNotEmpty()) {
+                $related = Kota::whereIn('iId', $iIdKotaIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKota)) {
+                        $item->iIdKota = $related->get($item->iIdKota);
+                    }
+                }
+            }
+
+            $iIdKecamatanIds = collect($rawItems)->pluck('iIdKecamatan')->unique()->filter()->values();
+            if ($iIdKecamatanIds->isNotEmpty()) {
+                $related = Kecamatan::whereIn('iId', $iIdKecamatanIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKecamatan)) {
+                        $item->iIdKecamatan = $related->get($item->iIdKecamatan);
+                    }
+                }
+            }
+
+            $iIdKelurahanIds = collect($rawItems)->pluck('iIdKelurahan')->unique()->filter()->values();
+            if ($iIdKelurahanIds->isNotEmpty()) {
+                $related = Kelurahan::whereIn('iId', $iIdKelurahanIds)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKelurahan)) {
+                        $item->iIdKelurahan = $related->get($item->iIdKelurahan);
+                    }
+                }
+            }
+        }
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -53,6 +191,20 @@ class CustomerAlamatService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+        $selects['iIdCustomer'] = Customer::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdProvinsi'] = Provinsi::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKota'] = Kota::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKecamatan'] = Kecamatan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKelurahan'] = Kelurahan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($columns as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
         return [
             'title' => $this->label(),
             'table' => $this->tableRoute(),
@@ -62,6 +214,7 @@ class CustomerAlamatService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +230,7 @@ class CustomerAlamatService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +246,7 @@ class CustomerAlamatService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +292,7 @@ class CustomerAlamatService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -198,35 +351,26 @@ class CustomerAlamatService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-  1 => 'vAlamat',
-  2 => 'iIdCustomer',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vNama',
-  1 => 'iIdCustomer',
-  2 => 'iIdProvinsi',
-  3 => 'iIdKota',
-  4 => 'iIdKecamatan',
-  5 => 'iIdKelurahan',
-  6 => 'vGPS',
-  7 => 'vAlamat',
-  8 => 'vNotelp',
-  9 => 'vNohp',
-  10 => 'eUtama',
-);
+        return [
+            'vNama',
+            'iIdCustomer',
+            'iIdProvinsi',
+            'iIdKota',
+            'iIdKecamatan',
+            'iIdKelurahan',
+            'vGPS',
+            'vAlamat',
+            'vNotelp',
+            'vNohp',
+            'eUtama',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vNama' => 'Nama',
             'iIdCustomer' => 'Customer',
             'iIdProvinsi' => 'Provinsi',
@@ -242,9 +386,9 @@ class CustomerAlamatService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vAlamat' => 'textarea',
             'vNotelp' => 'tel',
             'vNohp' => 'tel',
@@ -255,14 +399,12 @@ class CustomerAlamatService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -275,6 +417,25 @@ class CustomerAlamatService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+        $selects['iIdCustomer'] = Customer::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdProvinsi'] = Provinsi::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKota'] = Kota::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKecamatan'] = Kecamatan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKelurahan'] = Kelurahan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($this->columns() as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -305,8 +466,8 @@ class CustomerAlamatService
 
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eUtama' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eUtama' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

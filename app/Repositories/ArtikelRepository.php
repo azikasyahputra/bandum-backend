@@ -13,42 +13,40 @@ class ArtikelRepository implements ArtikelRepositoryContract
 {
     public function paginate(array $columns, array $searchCols, array $queryParams): LengthAwarePaginator
     {
-        $query = Artikel::query();
+        $query = Artikel::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $query->where(function ($q) {
-            $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-        });
-
-        $searchCols = array_unique(array_merge($columns, $searchCols));
-        $selectOpts = $this->selectOptions();
-
-        foreach ($searchCols as $col) {
-            $val = $queryParams[$col] ?? null;
-            if ($val === null || $val === '') {
-                continue;
-            }
-
-            if (isset($selectOpts[$col])) {
-                $config = $selectOpts[$col];
-                $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
-                $query->whereIn($col, $relatedIds);
-            } elseif (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
-            } else {
-                $query->where($col, 'like', "%{$val}%");
-            }
+        if ($vThumbnails = $queryParams['vThumbnails'] ?? null) {
+            $query->where('vThumbnails', 'like', "%{$vThumbnails}%");
         }
 
-        foreach (['tCreated', 'tUpdated'] as $col) {
-            $from = $queryParams[$col . '_from'] ?? null;
-            $to = $queryParams[$col . '_to'] ?? null;
+        if ($vTitle = $queryParams['vTitle'] ?? null) {
+            $query->where('vTitle', 'like', "%{$vTitle}%");
+        }
 
-            if ($from !== null && $from !== '') {
-                $query->where($col, '>=', $from);
-            }
-            if ($to !== null && $to !== '') {
-                $query->where($col, '<=', $to . ' 23:59:59');
-            }
+        if ($vIsi = $queryParams['vIsi'] ?? null) {
+            $query->where('vIsi', 'like', "%{$vIsi}%");
+        }
+
+        if ($eTampil = $queryParams['eTampil'] ?? null) {
+            $query->where('eTampil', $eTampil);
+        }
+
+        if ($tCreatedFrom = $queryParams['tCreated_from'] ?? null) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $queryParams['tCreated_to'] ?? null) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $queryParams['tUpdated_from'] ?? null) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $queryParams['tUpdated_to'] ?? null) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
         }
 
         return $query->paginate(20)->withQueryString();
@@ -77,7 +75,7 @@ class ArtikelRepository implements ArtikelRepositoryContract
     {
         $item->timestamps = false;
         return $item->update([
-            'eDeleted' => 'ya',
+            'eDeleted' => 'Ya',
             'iUpdatedid' => auth()->id() ?? 1,
             'tUpdated' => now(),
         ]);
@@ -85,50 +83,11 @@ class ArtikelRepository implements ArtikelRepositoryContract
 
     public function resolveForeignKeys(LengthAwarePaginator $paginator): void
     {
-        $selectOpts = $this->selectOptions();
-
-        if (empty($selectOpts)) {
-            return;
-        }
-
-        $items = $paginator->items();
-        if (empty($items)) {
-            return;
-        }
-
-        foreach ($selectOpts as $col => $config) {
-            $ids = collect($items)->pluck($col)->unique()->filter()->values();
-            if ($ids->isEmpty()) {
-                continue;
-            }
-
-            $class = $config['model'];
-            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
-
-            foreach ($items as $item) {
-                $fk = $item->getAttribute($col);
-                if ($fk !== null && $related->has($fk)) {
-                    $item->setAttribute($col, $related[$fk]);
-                }
-            }
-        }
     }
 
     public function selectData(array $fields): array
     {
         $selects = [];
-        $selectOpts = $this->selectOptions();
-
-        foreach ($fields as $col) {
-            $config = $selectOpts[$col] ?? null;
-
-            if ($config) {
-                $class = $config['model'];
-                $selects[$col] = $class::where(function ($q) {
-                    $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-                })->get([$config['value'] . ' as value', $config['label'] . ' as label']);
-            }
-        }
 
         foreach ($fields as $col) {
             $enumOptions = $this->enumOptions($col);
@@ -138,12 +97,6 @@ class ArtikelRepository implements ArtikelRepositoryContract
         }
 
         return $selects;
-    }
-
-    private function selectOptions(): array
-    {
-        return array (
-);
     }
 
     private function enumOptions(string $col): array

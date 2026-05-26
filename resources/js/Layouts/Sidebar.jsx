@@ -131,6 +131,7 @@ function isActiveLink(href, currentUrl) {
     if (href === "#" || !href) return false;
     if (currentUrl === href) return true;
     if (currentUrl.startsWith(href + "/")) return true;
+    if (currentUrl.startsWith(href + "-")) return true;
     return false;
 }
 

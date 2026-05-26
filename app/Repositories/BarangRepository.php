@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Models\Barang;
+use App\Models\Brand;
+use App\Models\Kategori;
+use App\Models\Subkategori;
 use App\Repositories\Contracts\BarangRepositoryContract;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
@@ -13,46 +16,67 @@ class BarangRepository implements BarangRepositoryContract
 {
     public function paginate(array $columns, array $searchCols, array $queryParams): LengthAwarePaginator
     {
-        $query = Barang::query();
+        $query = Barang::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $query->where(function ($q) {
-            $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-        });
+        if ($vNama = $queryParams['vNama'] ?? null) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
 
-        $searchCols = array_unique(array_merge($columns, $searchCols));
-        $selectOpts = $this->selectOptions();
-
-        foreach ($searchCols as $col) {
-            $val = $queryParams[$col] ?? null;
-            if ($val === null || $val === '') {
-                continue;
-            }
-
-            if (isset($selectOpts[$col])) {
-                if (is_numeric($val)) {
-                    $query->where($col, $val);
-                } else {
-                    $config = $selectOpts[$col];
-                    $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
-                    $query->whereIn($col, $relatedIds);
-                }
-            } elseif (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
+        if ($iIdBrand = $queryParams['iIdBrand'] ?? null) {
+            if (is_numeric($iIdBrand)) {
+                $query->where('iIdBrand', $iIdBrand);
             } else {
-                $query->where($col, 'like', "%{$val}%");
+                $relatedIds = Brand::where('vNama', 'like', "%{$iIdBrand}%")->pluck('iId');
+                $query->whereIn('iIdBrand', $relatedIds);
             }
         }
 
-        foreach (['tCreated', 'tUpdated'] as $col) {
-            $from = $queryParams[$col . '_from'] ?? null;
-            $to = $queryParams[$col . '_to'] ?? null;
+        if ($iIdKategori = $queryParams['iIdKategori'] ?? null) {
+            if (is_numeric($iIdKategori)) {
+                $query->where('iIdKategori', $iIdKategori);
+            } else {
+                $relatedIds = Kategori::where('vNama', 'like', "%{$iIdKategori}%")->pluck('iId');
+                $query->whereIn('iIdKategori', $relatedIds);
+            }
+        }
 
-            if ($from !== null && $from !== '') {
-                $query->where($col, '>=', $from);
+        if ($iIdSubkategori = $queryParams['iIdSubkategori'] ?? null) {
+            if (is_numeric($iIdSubkategori)) {
+                $query->where('iIdSubkategori', $iIdSubkategori);
+            } else {
+                $relatedIds = Subkategori::where('vNama', 'like', "%{$iIdSubkategori}%")->pluck('iId');
+                $query->whereIn('iIdSubkategori', $relatedIds);
             }
-            if ($to !== null && $to !== '') {
-                $query->where($col, '<=', $to . ' 23:59:59');
-            }
+        }
+
+        if ($vDeskripsisingkat = $queryParams['vDeskripsisingkat'] ?? null) {
+            $query->where('vDeskripsisingkat', 'like', "%{$vDeskripsisingkat}%");
+        }
+
+        if ($vDeskripsidetail = $queryParams['vDeskripsidetail'] ?? null) {
+            $query->where('vDeskripsidetail', 'like', "%{$vDeskripsidetail}%");
+        }
+
+        if ($eBestselling = $queryParams['eBestselling'] ?? null) {
+            $query->where('eBestselling', $eBestselling);
+        }
+
+        if ($tCreatedFrom = $queryParams['tCreated_from'] ?? null) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $queryParams['tCreated_to'] ?? null) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $queryParams['tUpdated_from'] ?? null) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $queryParams['tUpdated_to'] ?? null) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
         }
 
         return $query->paginate(20)->withQueryString();
@@ -81,7 +105,7 @@ class BarangRepository implements BarangRepositoryContract
     {
         $item->timestamps = false;
         return $item->update([
-            'eDeleted' => 'ya',
+            'eDeleted' => 'Ya',
             'iUpdatedid' => auth()->id() ?? 1,
             'tUpdated' => now(),
         ]);
@@ -89,30 +113,44 @@ class BarangRepository implements BarangRepositoryContract
 
     public function resolveForeignKeys(LengthAwarePaginator $paginator): void
     {
-        $selectOpts = $this->selectOptions();
-
-        if (empty($selectOpts)) {
-            return;
-        }
-
         $items = $paginator->items();
+
         if (empty($items)) {
             return;
         }
 
-        foreach ($selectOpts as $col => $config) {
-            $ids = collect($items)->pluck($col)->unique()->filter()->values();
-            if ($ids->isEmpty()) {
-                continue;
-            }
+        $iIdBrandIds = collect($items)->pluck('iIdBrand')->unique()->filter()->values();
 
-            $class = $config['model'];
-            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
+        if ($iIdBrandIds->isNotEmpty()) {
+            $related = Brand::whereIn('iId', $iIdBrandIds)->pluck('vNama', 'iId');
 
             foreach ($items as $item) {
-                $fk = $item->getAttribute($col);
-                if ($fk !== null && $related->has($fk)) {
-                    $item->setAttribute($col, $related[$fk]);
+                if ($related->has($item->iIdBrand)) {
+                    $item->iIdBrand = $related->get($item->iIdBrand);
+                }
+            }
+        }
+
+        $iIdKategoriIds = collect($items)->pluck('iIdKategori')->unique()->filter()->values();
+
+        if ($iIdKategoriIds->isNotEmpty()) {
+            $related = Kategori::whereIn('iId', $iIdKategoriIds)->pluck('vNama', 'iId');
+
+            foreach ($items as $item) {
+                if ($related->has($item->iIdKategori)) {
+                    $item->iIdKategori = $related->get($item->iIdKategori);
+                }
+            }
+        }
+
+        $iIdSubkategoriIds = collect($items)->pluck('iIdSubkategori')->unique()->filter()->values();
+
+        if ($iIdSubkategoriIds->isNotEmpty()) {
+            $related = Subkategori::whereIn('iId', $iIdSubkategoriIds)->pluck('vNama', 'iId');
+
+            foreach ($items as $item) {
+                if ($related->has($item->iIdSubkategori)) {
+                    $item->iIdSubkategori = $related->get($item->iIdSubkategori);
                 }
             }
         }
@@ -121,18 +159,10 @@ class BarangRepository implements BarangRepositoryContract
     public function selectData(array $fields): array
     {
         $selects = [];
-        $selectOpts = $this->selectOptions();
 
-        foreach ($fields as $col) {
-            $config = $selectOpts[$col] ?? null;
-
-            if ($config) {
-                $class = $config['model'];
-                $selects[$col] = $class::where(function ($q) {
-                    $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-                })->get([$config['value'] . ' as value', $config['label'] . ' as label']);
-            }
-        }
+        $selects['iIdBrand'] = Brand::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKategori'] = Kategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdSubkategori'] = Subkategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
 
         foreach ($fields as $col) {
             $enumOptions = $this->enumOptions($col);
@@ -142,30 +172,6 @@ class BarangRepository implements BarangRepositoryContract
         }
 
         return $selects;
-    }
-
-    private function selectOptions(): array
-    {
-        return array (
-  'iIdBrand' => 
-  array (
-    'model' => '\\App\\Models\\Brand',
-    'value' => 'iId',
-    'label' => 'vNama',
-  ),
-  'iIdKategori' => 
-  array (
-    'model' => '\\App\\Models\\Kategori',
-    'value' => 'iId',
-    'label' => 'vNama',
-  ),
-  'iIdSubkategori' => 
-  array (
-    'model' => '\\App\\Models\\Subkategori',
-    'value' => 'iId',
-    'label' => 'vNama',
-  ),
-);
     }
 
     private function enumOptions(string $col): array

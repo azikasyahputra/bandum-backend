@@ -15,19 +15,16 @@ class UserRepository implements UserRepositoryContract
     {
         $query = User::query();
 
-        $searchCols = array_unique(array_merge($columns, $searchCols));
+        if ($name = $queryParams['name'] ?? null) {
+            $query->where('name', 'like', "%{$name}%");
+        }
 
-        foreach ($searchCols as $col) {
-            $val = $queryParams[$col] ?? null;
-            if ($val === null || $val === '') {
-                continue;
-            }
+        if ($email = $queryParams['email'] ?? null) {
+            $query->where('email', 'like', "%{$email}%");
+        }
 
-            if (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
-            } else {
-                $query->where($col, 'like', "%{$val}%");
-            }
+        if ($role = $queryParams['role'] ?? null) {
+            $query->where('role', $role);
         }
 
         return $query->paginate(20)->withQueryString();

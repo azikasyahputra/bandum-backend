@@ -5,26 +5,31 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use App\Repositories\Contracts\UserRepositoryContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserService
 {
-    public function __construct(
-        private UserRepositoryContract $repository,
-    ) {}
-
     public function paginated(Request $request): array
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = User::query();
+
+        if ($name = $request->query('name')) {
+            $query->where('name', 'like', "%{$name}%");
+        }
+
+        if ($email = $request->query('email')) {
+            $query->where('email', 'like', "%{$email}%");
+        }
+
+        if ($role = $request->query('role')) {
+            $query->where('role', $role);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $searchValues = [];
         foreach ($columns as $col) {
@@ -45,7 +50,7 @@ class UserService
 
     public function detail(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = User::findOrFail($id);
         $columns = $this->columns();
 
         return [
@@ -85,13 +90,13 @@ class UserService
 
         $validated['password'] = Hash::make($validated['password']);
 
-        $model = $this->repository->create($validated);
+        $model = User::create($validated);
         return $model->{$this->primaryKey()};
     }
 
     public function edit(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = User::findOrFail($id);
 
         return [
             'title' => 'Edit Users',
@@ -107,7 +112,7 @@ class UserService
 
     public function update(Request $request, int $id): void
     {
-        $item = $this->repository->findOrFail($id);
+        $item = User::findOrFail($id);
 
         $rules = [
             'name' => 'required|string|max:255',
@@ -127,13 +132,13 @@ class UserService
             unset($validated['password']);
         }
 
-        $this->repository->update($item, $validated);
+        $item->update($validated);
     }
 
     public function destroy(int $id): void
     {
-        $item = $this->repository->findOrFail($id);
-        $this->repository->delete($item);
+        $item = User::findOrFail($id);
+        $item->delete();
     }
 
     private function label(): string
@@ -149,11 +154,6 @@ class UserService
     private function primaryKey(): string
     {
         return 'id';
-    }
-
-    private function search(): array
-    {
-        return ['name', 'email', 'role'];
     }
 
     private function columns(): array

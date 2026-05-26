@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Kategori;
 use App\Models\Subkategori;
 use App\Models\User;
 use App\Repositories\Contracts\SubkategoriRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class SubkategoriService
 {
@@ -22,15 +21,54 @@ class SubkategoriService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Subkategori::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($iIdKategori = $request->query('iIdKategori')) {
+            if (is_numeric($iIdKategori)) {
+                $query->where('iIdKategori', $iIdKategori);
+            } else {
+                $relatedIds = Kategori::where('vNama', 'like', "%{$iIdKategori}%")->pluck('iId');
+                $query->whereIn('iIdKategori', $relatedIds);
+            }
+        }
+
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+        if (!empty($rawItems)) {
+            $ids = collect($rawItems)->pluck('iIdKategori')->unique()->filter()->values();
+            if ($ids->isNotEmpty()) {
+                $related = Kategori::whereIn('iId', $ids)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKategori)) {
+                        $item->iIdKategori = $related->get($item->iIdKategori);
+                    }
+                }
+            }
+        }
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -53,6 +91,9 @@ class SubkategoriService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+        $selects['iIdKategori'] = Kategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
         return [
             'title' => $this->label(),
             'table' => $this->tableRoute(),
@@ -62,6 +103,7 @@ class SubkategoriService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +119,7 @@ class SubkategoriService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +135,7 @@ class SubkategoriService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +181,7 @@ class SubkategoriService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -203,33 +245,26 @@ class SubkategoriService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'iIdKategori',
-  1 => 'vNama',
-);
+        return [
+            'iIdKategori',
+            'vNama',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'iIdKategori' => 'Kategori',
             'vNama' => 'Nama',
             default => ucwords(str_replace(['_', 'v', 'i', 'e', 'd'], ' ', preg_replace('/^[viepd]/s', '', $col))),
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'iId' => 'select',
             default => 'text',
         };
@@ -237,14 +272,12 @@ class SubkategoriService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -257,6 +290,14 @@ class SubkategoriService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+        $selects['iIdKategori'] = Kategori::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array
@@ -283,10 +324,5 @@ class SubkategoriService
         }
 
         return $audit;
-    }
-
-    private function enumOptions(string $col): array
-    {
-            return [];
     }
 }

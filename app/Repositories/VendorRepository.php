@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Models\Vendor;
+use App\Models\VendorAlamat;
 use App\Repositories\Contracts\VendorRepositoryContract;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
@@ -13,42 +14,93 @@ class VendorRepository implements VendorRepositoryContract
 {
     public function paginate(array $columns, array $searchCols, array $queryParams): LengthAwarePaginator
     {
-        $query = Vendor::query();
+        $query = Vendor::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $query->where(function ($q) {
-            $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-        });
+        if ($vNama = $queryParams['vNama'] ?? null) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
 
-        $searchCols = array_unique(array_merge($columns, $searchCols));
-        $selectOpts = $this->selectOptions();
+        if ($vProfilepic = $queryParams['vProfilepic'] ?? null) {
+            $query->where('vProfilepic', 'like', "%{$vProfilepic}%");
+        }
 
-        foreach ($searchCols as $col) {
-            $val = $queryParams[$col] ?? null;
-            if ($val === null || $val === '') {
-                continue;
-            }
+        if ($eTipe = $queryParams['eTipe'] ?? null) {
+            $query->where('eTipe', $eTipe);
+        }
 
-            if (isset($selectOpts[$col])) {
-                $config = $selectOpts[$col];
-                $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
-                $query->whereIn($col, $relatedIds);
-            } elseif (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
+        if ($vNamadirektur = $queryParams['vNamadirektur'] ?? null) {
+            $query->where('vNamadirektur', 'like', "%{$vNamadirektur}%");
+        }
+
+        if ($dTanggalberdiri = $queryParams['dTanggalberdiri'] ?? null) {
+            $query->where('dTanggalberdiri', $dTanggalberdiri);
+        }
+
+        if ($eJumlahkaryawan = $queryParams['eJumlahkaryawan'] ?? null) {
+            $query->where('eJumlahkaryawan', $eJumlahkaryawan);
+        }
+
+        if ($vOfficephone = $queryParams['vOfficephone'] ?? null) {
+            $query->where('vOfficephone', 'like', "%{$vOfficephone}%");
+        }
+
+        if ($vNamapic = $queryParams['vNamapic'] ?? null) {
+            $query->where('vNamapic', 'like', "%{$vNamapic}%");
+        }
+
+        if ($vKontakpic = $queryParams['vKontakpic'] ?? null) {
+            $query->where('vKontakpic', 'like', "%{$vKontakpic}%");
+        }
+
+        if ($iIdAlamatutama = $queryParams['iIdAlamatutama'] ?? null) {
+            if (is_numeric($iIdAlamatutama)) {
+                $query->where('iIdAlamatutama', $iIdAlamatutama);
             } else {
-                $query->where($col, 'like', "%{$val}%");
+                $relatedIds = VendorAlamat::where('vNama', 'like', "%{$iIdAlamatutama}%")->pluck('iId');
+                $query->whereIn('iIdAlamatutama', $relatedIds);
             }
         }
 
-        foreach (['tCreated', 'tUpdated'] as $col) {
-            $from = $queryParams[$col . '_from'] ?? null;
-            $to = $queryParams[$col . '_to'] ?? null;
+        if ($vSiup = $queryParams['vSiup'] ?? null) {
+            $query->where('vSiup', 'like', "%{$vSiup}%");
+        }
 
-            if ($from !== null && $from !== '') {
-                $query->where($col, '>=', $from);
-            }
-            if ($to !== null && $to !== '') {
-                $query->where($col, '<=', $to . ' 23:59:59');
-            }
+        if ($vFilesiup = $queryParams['vFilesiup'] ?? null) {
+            $query->where('vFilesiup', 'like', "%{$vFilesiup}%");
+        }
+
+        if ($vFileaktapendirian = $queryParams['vFileaktapendirian'] ?? null) {
+            $query->where('vFileaktapendirian', 'like', "%{$vFileaktapendirian}%");
+        }
+
+        if ($vFiledomisiliperusahaan = $queryParams['vFiledomisiliperusahaan'] ?? null) {
+            $query->where('vFiledomisiliperusahaan', 'like', "%{$vFiledomisiliperusahaan}%");
+        }
+
+        if ($vDeskripsi = $queryParams['vDeskripsi'] ?? null) {
+            $query->where('vDeskripsi', 'like', "%{$vDeskripsi}%");
+        }
+
+        if ($eVerifikasi = $queryParams['eVerifikasi'] ?? null) {
+            $query->where('eVerifikasi', $eVerifikasi);
+        }
+
+        if ($tCreatedFrom = $queryParams['tCreated_from'] ?? null) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $queryParams['tCreated_to'] ?? null) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $queryParams['tUpdated_from'] ?? null) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $queryParams['tUpdated_to'] ?? null) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
         }
 
         return $query->paginate(20)->withQueryString();
@@ -77,7 +129,7 @@ class VendorRepository implements VendorRepositoryContract
     {
         $item->timestamps = false;
         return $item->update([
-            'eDeleted' => 'ya',
+            'eDeleted' => 'Ya',
             'iUpdatedid' => auth()->id() ?? 1,
             'tUpdated' => now(),
         ]);
@@ -85,31 +137,23 @@ class VendorRepository implements VendorRepositoryContract
 
     public function resolveForeignKeys(LengthAwarePaginator $paginator): void
     {
-        $selectOpts = $this->selectOptions();
-
-        if (empty($selectOpts)) {
-            return;
-        }
-
         $items = $paginator->items();
+
         if (empty($items)) {
             return;
         }
 
-        foreach ($selectOpts as $col => $config) {
-            $ids = collect($items)->pluck($col)->unique()->filter()->values();
-            if ($ids->isEmpty()) {
-                continue;
-            }
+        $ids = collect($items)->pluck('iIdAlamatutama')->unique()->filter()->values();
 
-            $class = $config['model'];
-            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
+        if ($ids->isEmpty()) {
+            return;
+        }
 
-            foreach ($items as $item) {
-                $fk = $item->getAttribute($col);
-                if ($fk !== null && $related->has($fk)) {
-                    $item->setAttribute($col, $related[$fk]);
-                }
+        $related = VendorAlamat::whereIn('iId', $ids)->pluck('vNama', 'iId');
+
+        foreach ($items as $item) {
+            if ($related->has($item->iIdAlamatutama)) {
+                $item->iIdAlamatutama = $related->get($item->iIdAlamatutama);
             }
         }
     }
@@ -117,18 +161,8 @@ class VendorRepository implements VendorRepositoryContract
     public function selectData(array $fields): array
     {
         $selects = [];
-        $selectOpts = $this->selectOptions();
 
-        foreach ($fields as $col) {
-            $config = $selectOpts[$col] ?? null;
-
-            if ($config) {
-                $class = $config['model'];
-                $selects[$col] = $class::where(function ($q) {
-                    $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-                })->get([$config['value'] . ' as value', $config['label'] . ' as label']);
-            }
-        }
+        $selects['iIdAlamatutama'] = VendorAlamat::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
 
         foreach ($fields as $col) {
             $enumOptions = $this->enumOptions($col);
@@ -138,18 +172,6 @@ class VendorRepository implements VendorRepositoryContract
         }
 
         return $selects;
-    }
-
-    private function selectOptions(): array
-    {
-        return array (
-  'iIdAlamatutama' => 
-  array (
-    'model' => '\\App\\Models\\VendorAlamat',
-    'value' => 'iId',
-    'label' => 'vNama',
-  ),
-);
     }
 
     private function enumOptions(string $col): array

@@ -6,31 +6,59 @@ namespace App\Services;
 
 use App\Models\Testimoni;
 use App\Models\User;
-use App\Repositories\Contracts\TestimoniRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class TestimoniService
 {
-    public function __construct(
-        private TestimoniRepositoryContract $repository,
-    ) {}
-
     public function paginated(Request $request): array
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Testimoni::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($iIdTransaksi = $request->query('iIdTransaksi')) {
+            $query->where('iIdTransaksi', $iIdTransaksi);
+        }
+
+        if ($iIdUser = $request->query('iIdUser')) {
+            $query->where('iIdUser', $iIdUser);
+        }
+
+        if ($vJudul = $request->query('vJudul')) {
+            $query->where('vJudul', 'like', "%{$vJudul}%");
+        }
+
+        if ($vReview = $request->query('vReview')) {
+            $query->where('vReview', 'like', "%{$vReview}%");
+        }
+
+        if ($eTampil = $request->query('eTampil')) {
+            $query->where('eTampil', $eTampil);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -38,6 +66,7 @@ class TestimoniService
 
             if ($userIds->isNotEmpty()) {
                 $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+
                 foreach ($rawItems as $item) {
                     $item->vCreator = isset($item->iCreatedid) && $users->has($item->iCreatedid) ? $users[$item->iCreatedid] : null;
                     $item->vUpdater = isset($item->iUpdatedid) && $users->has($item->iUpdatedid) ? $users[$item->iUpdatedid] : null;
@@ -67,7 +96,7 @@ class TestimoniService
 
     public function detail(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Testimoni::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -77,7 +106,7 @@ class TestimoniService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +122,7 @@ class TestimoniService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -123,13 +152,16 @@ class TestimoniService
         $validated['iCreatedid'] = auth()->id() ?? 1;
         $validated['tCreated'] = now();
 
-        $model = $this->repository->create($validated);
+        $model = new Testimoni;
+        $model->timestamps = false;
+        $model->fill($validated)->save();
+
         return $model->{$this->primaryKey()};
     }
 
     public function edit(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Testimoni::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -139,7 +171,7 @@ class TestimoniService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -147,7 +179,7 @@ class TestimoniService
 
     public function update(Request $request, int $id): void
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Testimoni::where('iId', $id)->firstOrFail();
 
         $skip = ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'];
         $fillable = array_values(array_filter((new Testimoni)->getFillable(), fn ($c) => !in_array($c, $skip)));
@@ -172,16 +204,21 @@ class TestimoniService
         $validated['iUpdatedid'] = auth()->id() ?? 1;
         $validated['tUpdated'] = now();
 
-        $this->repository->update($item, $validated);
+        $item->timestamps = false;
+        $item->update($validated);
     }
 
     public function destroy(int $id): void
     {
-        $item = $this->repository->findOrFail($id);
-        $this->repository->delete($item);
-    }
+        $item = Testimoni::where('iId', $id)->firstOrFail();
 
-    // ---- Config methods ----
+        $item->timestamps = false;
+        $item->update([
+            'eDeleted' => 'Ya',
+            'iUpdatedid' => auth()->id() ?? 1,
+            'tUpdated' => now(),
+        ]);
+    }
 
     private function label(): string
     {
@@ -198,28 +235,20 @@ class TestimoniService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vJudul',
-  1 => 'vReview',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'iIdTransaksi',
-  1 => 'iIdUser',
-  2 => 'vJudul',
-  3 => 'vReview',
-  4 => 'eTampil',
-);
+        return [
+            'iIdTransaksi',
+            'iIdUser',
+            'vJudul',
+            'vReview',
+            'eTampil',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'iIdTransaksi' => 'Transaksi',
             'iIdUser' => 'User',
             'vJudul' => 'Judul',
@@ -229,9 +258,9 @@ class TestimoniService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vReview' => 'textarea',
             'eTampil' => 'enum',
             default => 'text',
@@ -240,14 +269,12 @@ class TestimoniService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -288,10 +315,24 @@ class TestimoniService
         return $audit;
     }
 
+    private function selectData(array $fields): array
+    {
+        $selects = [];
+
+        foreach ($fields as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
+    }
+
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eTampil' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eTampil' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

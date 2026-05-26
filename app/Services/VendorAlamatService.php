@@ -4,33 +4,177 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Kecamatan;
+use App\Models\Kelurahan;
+use App\Models\Kota;
+use App\Models\Provinsi;
+use App\Models\Vendor;
 use App\Models\VendorAlamat;
 use App\Models\User;
-use App\Repositories\Contracts\VendorAlamatRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class VendorAlamatService
 {
-    public function __construct(
-        private VendorAlamatRepositoryContract $repository,
-    ) {}
-
     public function paginated(Request $request): array
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = VendorAlamat::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($vAlamat = $request->query('vAlamat')) {
+            $query->where('vAlamat', 'like', "%{$vAlamat}%");
+        }
+
+        if ($iIdVendor = $request->query('iIdVendor')) {
+            if (is_numeric($iIdVendor)) {
+                $query->where('iIdVendor', $iIdVendor);
+            } else {
+                $relatedIds = Vendor::where('vNama', 'like', "%{$iIdVendor}%")->pluck('iId');
+                $query->whereIn('iIdVendor', $relatedIds);
+            }
+        }
+
+        if ($iIdProvinsi = $request->query('iIdProvinsi')) {
+            if (is_numeric($iIdProvinsi)) {
+                $query->where('iIdProvinsi', $iIdProvinsi);
+            } else {
+                $relatedIds = Provinsi::where('vNama', 'like', "%{$iIdProvinsi}%")->pluck('iId');
+                $query->whereIn('iIdProvinsi', $relatedIds);
+            }
+        }
+
+        if ($iIdKota = $request->query('iIdKota')) {
+            if (is_numeric($iIdKota)) {
+                $query->where('iIdKota', $iIdKota);
+            } else {
+                $relatedIds = Kota::where('vNama', 'like', "%{$iIdKota}%")->pluck('iId');
+                $query->whereIn('iIdKota', $relatedIds);
+            }
+        }
+
+        if ($iIdKecamatan = $request->query('iIdKecamatan')) {
+            if (is_numeric($iIdKecamatan)) {
+                $query->where('iIdKecamatan', $iIdKecamatan);
+            } else {
+                $relatedIds = Kecamatan::where('vNama', 'like', "%{$iIdKecamatan}%")->pluck('iId');
+                $query->whereIn('iIdKecamatan', $relatedIds);
+            }
+        }
+
+        if ($iIdKelurahan = $request->query('iIdKelurahan')) {
+            if (is_numeric($iIdKelurahan)) {
+                $query->where('iIdKelurahan', $iIdKelurahan);
+            } else {
+                $relatedIds = Kelurahan::where('vNama', 'like', "%{$iIdKelurahan}%")->pluck('iId');
+                $query->whereIn('iIdKelurahan', $relatedIds);
+            }
+        }
+
+        if ($vGPS = $request->query('vGPS')) {
+            $query->where('vGPS', 'like', "%{$vGPS}%");
+        }
+
+        if ($vNotelp = $request->query('vNotelp')) {
+            $query->where('vNotelp', 'like', "%{$vNotelp}%");
+        }
+
+        if ($vNohp = $request->query('vNohp')) {
+            $query->where('vNohp', 'like', "%{$vNohp}%");
+        }
+
+        if ($eUtama = $request->query('eUtama')) {
+            $query->where('eUtama', $eUtama);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+
+        if (!empty($rawItems)) {
+            $iIdVendorIds = collect($rawItems)->pluck('iIdVendor')->unique()->filter()->values();
+
+            if ($iIdVendorIds->isNotEmpty()) {
+                $related = Vendor::whereIn('iId', $iIdVendorIds)->pluck('vNama', 'iId');
+
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdVendor)) {
+                        $item->iIdVendor = $related->get($item->iIdVendor);
+                    }
+                }
+            }
+
+            $iIdProvinsiIds = collect($rawItems)->pluck('iIdProvinsi')->unique()->filter()->values();
+
+            if ($iIdProvinsiIds->isNotEmpty()) {
+                $related = Provinsi::whereIn('iId', $iIdProvinsiIds)->pluck('vNama', 'iId');
+
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdProvinsi)) {
+                        $item->iIdProvinsi = $related->get($item->iIdProvinsi);
+                    }
+                }
+            }
+
+            $iIdKotaIds = collect($rawItems)->pluck('iIdKota')->unique()->filter()->values();
+
+            if ($iIdKotaIds->isNotEmpty()) {
+                $related = Kota::whereIn('iId', $iIdKotaIds)->pluck('vNama', 'iId');
+
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKota)) {
+                        $item->iIdKota = $related->get($item->iIdKota);
+                    }
+                }
+            }
+
+            $iIdKecamatanIds = collect($rawItems)->pluck('iIdKecamatan')->unique()->filter()->values();
+
+            if ($iIdKecamatanIds->isNotEmpty()) {
+                $related = Kecamatan::whereIn('iId', $iIdKecamatanIds)->pluck('vNama', 'iId');
+
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKecamatan)) {
+                        $item->iIdKecamatan = $related->get($item->iIdKecamatan);
+                    }
+                }
+            }
+
+            $iIdKelurahanIds = collect($rawItems)->pluck('iIdKelurahan')->unique()->filter()->values();
+
+            if ($iIdKelurahanIds->isNotEmpty()) {
+                $related = Kelurahan::whereIn('iId', $iIdKelurahanIds)->pluck('vNama', 'iId');
+
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdKelurahan)) {
+                        $item->iIdKelurahan = $related->get($item->iIdKelurahan);
+                    }
+                }
+            }
+        }
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -38,6 +182,7 @@ class VendorAlamatService
 
             if ($userIds->isNotEmpty()) {
                 $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+
                 foreach ($rawItems as $item) {
                     $item->vCreator = isset($item->iCreatedid) && $users->has($item->iCreatedid) ? $users[$item->iCreatedid] : null;
                     $item->vUpdater = isset($item->iUpdatedid) && $users->has($item->iUpdatedid) ? $users[$item->iUpdatedid] : null;
@@ -67,7 +212,7 @@ class VendorAlamatService
 
     public function detail(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = VendorAlamat::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -77,7 +222,7 @@ class VendorAlamatService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +238,7 @@ class VendorAlamatService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -123,13 +268,16 @@ class VendorAlamatService
         $validated['iCreatedid'] = auth()->id() ?? 1;
         $validated['tCreated'] = now();
 
-        $model = $this->repository->create($validated);
+        $model = new VendorAlamat;
+        $model->timestamps = false;
+        $model->fill($validated)->save();
+
         return $model->{$this->primaryKey()};
     }
 
     public function edit(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = VendorAlamat::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -139,7 +287,7 @@ class VendorAlamatService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -147,7 +295,7 @@ class VendorAlamatService
 
     public function update(Request $request, int $id): void
     {
-        $item = $this->repository->findOrFail($id);
+        $item = VendorAlamat::where('iId', $id)->firstOrFail();
 
         $skip = ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'];
         $fillable = array_values(array_filter((new VendorAlamat)->getFillable(), fn ($c) => !in_array($c, $skip)));
@@ -172,16 +320,21 @@ class VendorAlamatService
         $validated['iUpdatedid'] = auth()->id() ?? 1;
         $validated['tUpdated'] = now();
 
-        $this->repository->update($item, $validated);
+        $item->timestamps = false;
+        $item->update($validated);
     }
 
     public function destroy(int $id): void
     {
-        $item = $this->repository->findOrFail($id);
-        $this->repository->delete($item);
-    }
+        $item = VendorAlamat::where('iId', $id)->firstOrFail();
 
-    // ---- Config methods ----
+        $item->timestamps = false;
+        $item->update([
+            'eDeleted' => 'Ya',
+            'iUpdatedid' => auth()->id() ?? 1,
+            'tUpdated' => now(),
+        ]);
+    }
 
     private function label(): string
     {
@@ -198,35 +351,26 @@ class VendorAlamatService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vNama',
-  1 => 'vAlamat',
-  2 => 'iIdVendor',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vNama',
-  1 => 'vAlamat',
-  2 => 'iIdVendor',
-  3 => 'iIdProvinsi',
-  4 => 'iIdKota',
-  5 => 'iIdKecamatan',
-  6 => 'iIdKelurahan',
-  7 => 'vGPS',
-  8 => 'vNotelp',
-  9 => 'vNohp',
-  10 => 'eUtama',
-);
+        return [
+            'vNama',
+            'vAlamat',
+            'iIdVendor',
+            'iIdProvinsi',
+            'iIdKota',
+            'iIdKecamatan',
+            'iIdKelurahan',
+            'vGPS',
+            'vNotelp',
+            'vNohp',
+            'eUtama',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vNama' => 'Nama',
             'vAlamat' => 'Alamat',
             'iIdVendor' => 'Vendor',
@@ -242,9 +386,9 @@ class VendorAlamatService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vAlamat' => 'textarea',
             'vNotelp' => 'tel',
             'vNohp' => 'tel',
@@ -255,14 +399,12 @@ class VendorAlamatService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -303,10 +445,30 @@ class VendorAlamatService
         return $audit;
     }
 
+    private function selectData(array $fields): array
+    {
+        $selects = [];
+
+        $selects['iIdVendor'] = Vendor::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdProvinsi'] = Provinsi::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKota'] = Kota::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKecamatan'] = Kecamatan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+        $selects['iIdKelurahan'] = Kelurahan::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        foreach ($fields as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
+    }
+
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eUtama' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eUtama' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

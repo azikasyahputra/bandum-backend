@@ -6,31 +6,51 @@ namespace App\Services;
 
 use App\Models\Settings;
 use App\Models\User;
-use App\Repositories\Contracts\SettingsRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class SettingsService
 {
-    public function __construct(
-        private SettingsRepositoryContract $repository,
-    ) {}
-
     public function paginated(Request $request): array
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = Settings::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($vIsi = $request->query('vIsi')) {
+            $query->where('vIsi', 'like', "%{$vIsi}%");
+        }
+
+        if ($eTampil = $request->query('eTampil')) {
+            $query->where('eTampil', $eTampil);
+        }
+
+        if ($eTipe = $request->query('eTipe')) {
+            $query->where('eTipe', $eTipe);
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -38,6 +58,7 @@ class SettingsService
 
             if ($userIds->isNotEmpty()) {
                 $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+
                 foreach ($rawItems as $item) {
                     $item->vCreator = isset($item->iCreatedid) && $users->has($item->iCreatedid) ? $users[$item->iCreatedid] : null;
                     $item->vUpdater = isset($item->iUpdatedid) && $users->has($item->iUpdatedid) ? $users[$item->iUpdatedid] : null;
@@ -67,7 +88,7 @@ class SettingsService
 
     public function detail(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Settings::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -77,7 +98,7 @@ class SettingsService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +114,7 @@ class SettingsService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -123,13 +144,16 @@ class SettingsService
         $validated['iCreatedid'] = auth()->id() ?? 1;
         $validated['tCreated'] = now();
 
-        $model = $this->repository->create($validated);
+        $model = new Settings;
+        $model->timestamps = false;
+        $model->fill($validated)->save();
+
         return $model->{$this->primaryKey()};
     }
 
     public function edit(int $id): array
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Settings::where('iId', $id)->firstOrFail();
         $columns = $this->columns();
 
         return [
@@ -139,7 +163,7 @@ class SettingsService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData($columns),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -147,7 +171,7 @@ class SettingsService
 
     public function update(Request $request, int $id): void
     {
-        $item = $this->repository->findOrFail($id);
+        $item = Settings::where('iId', $id)->firstOrFail();
 
         $skip = ['iId', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated', 'eDeleted'];
         $fillable = array_values(array_filter((new Settings)->getFillable(), fn ($c) => !in_array($c, $skip)));
@@ -172,16 +196,21 @@ class SettingsService
         $validated['iUpdatedid'] = auth()->id() ?? 1;
         $validated['tUpdated'] = now();
 
-        $this->repository->update($item, $validated);
+        $item->timestamps = false;
+        $item->update($validated);
     }
 
     public function destroy(int $id): void
     {
-        $item = $this->repository->findOrFail($id);
-        $this->repository->delete($item);
-    }
+        $item = Settings::where('iId', $id)->firstOrFail();
 
-    // ---- Config methods ----
+        $item->timestamps = false;
+        $item->update([
+            'eDeleted' => 'Ya',
+            'iUpdatedid' => auth()->id() ?? 1,
+            'tUpdated' => now(),
+        ]);
+    }
 
     private function label(): string
     {
@@ -198,25 +227,18 @@ class SettingsService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-  0 => 'vIsi',
-);
-    }
-
     private function columns(): array
     {
-        return array (
-  0 => 'vIsi',
-  1 => 'eTampil',
-  2 => 'eTipe',
-);
+        return [
+            'vIsi',
+            'eTampil',
+            'eTipe',
+        ];
     }
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vIsi' => 'Isi',
             'eTampil' => 'Tampil',
             'eTipe' => 'Tipe',
@@ -224,9 +246,9 @@ class SettingsService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'vIsi' => 'textarea',
             'eTampil' => 'enum',
             'eTipe' => 'enum',
@@ -236,14 +258,12 @@ class SettingsService
 
     private function relatedTables(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array (
-);
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -284,10 +304,24 @@ class SettingsService
         return $audit;
     }
 
+    private function selectData(array $fields): array
+    {
+        $selects = [];
+
+        foreach ($fields as $col) {
+            $enumOptions = $this->enumOptions($col);
+            if (!empty($enumOptions)) {
+                $selects[$col] = $enumOptions;
+            }
+        }
+
+        return $selects;
+    }
+
     private function enumOptions(string $col): array
     {
-            return match ($col) {
-            'eTampil' => [   [   'value' => 'ya',    'label' => 'Ya'],    [   'value' => 'tidak',    'label' => 'Tidak']],
+        return match ($col) {
+            'eTampil' => [['value' => 'ya', 'label' => 'Ya'], ['value' => 'tidak', 'label' => 'Tidak']],
             default => [],
         };
     }

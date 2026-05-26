@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Barang;
 use App\Models\BarangKemasan;
 use App\Models\User;
 use App\Repositories\Contracts\BarangKemasanRepositoryContract;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Inertia\Response;
 
 class BarangKemasanService
 {
@@ -22,15 +21,65 @@ class BarangKemasanService
     {
         $columns = $this->columns();
 
-        $items = $this->repository->paginate(
-            $columns,
-            $this->search(),
-            $request->query->all(),
-        );
+        $query = BarangKemasan::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $this->repository->resolveForeignKeys($items);
+        if ($iIdBarang = $request->query('iIdBarang')) {
+            $query->where('iIdBarang', $iIdBarang);
+        }
+
+        if ($vNama = $request->query('vNama')) {
+            $query->where('vNama', 'like', "%{$vNama}%");
+        }
+
+        if ($vSku = $request->query('vSku')) {
+            $query->where('vSku', 'like', "%{$vSku}%");
+        }
+
+        if ($nHarga = $request->query('nHarga')) {
+            $query->where('nHarga', 'like', "%{$nHarga}%");
+        }
+
+        if ($nHargastrike = $request->query('nHargastrike')) {
+            $query->where('nHargastrike', 'like', "%{$nHargastrike}%");
+        }
+
+        if ($tCreatedFrom = $request->query('tCreated_from')) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $request->query('tCreated_to')) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $request->query('tUpdated_from')) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $request->query('tUpdated_to')) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
+        }
+
+        $iIdBarangParam = $request->query('iIdBarang');
+        $barang = $iIdBarangParam ? Barang::find($iIdBarangParam) : null;
+        $barangName = $barang?->vNama;
+
+        $items = $query->paginate(20)->withQueryString();
 
         $rawItems = $items->items();
+        if (!empty($rawItems)) {
+            $ids = collect($rawItems)->pluck('iIdBarang')->unique()->filter()->values();
+            if ($ids->isNotEmpty()) {
+                $related = Barang::whereIn('iId', $ids)->pluck('vNama', 'iId');
+                foreach ($rawItems as $item) {
+                    if ($related->has($item->iIdBarang)) {
+                        $item->iIdBarang = $related->get($item->iIdBarang);
+                    }
+                }
+            }
+        }
+
         if (!empty($rawItems) && isset($rawItems[0]->iCreatedid)) {
             $userIds = collect($rawItems)->pluck('iCreatedid')->merge(
                 collect($rawItems)->pluck('iUpdatedid')
@@ -53,8 +102,11 @@ class BarangKemasanService
             $searchValues[$param] = $request->query($param, '');
         }
 
+        $selects = [];
+        $selects['iIdBarang'] = Barang::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
         return [
-            'title' => $this->label(),
+            'title' => $this->label() . ($barangName ? " - {$barangName}" : ''),
             'table' => $this->tableRoute(),
             'items' => $items,
             'columns' => $columns,
@@ -62,6 +114,7 @@ class BarangKemasanService
             'searchValues' => $searchValues,
             'relatedTables' => $this->relatedTables(),
             'primaryKey' => $this->primaryKey(),
+            'selects' => $selects,
         ];
     }
 
@@ -77,7 +130,7 @@ class BarangKemasanService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -93,7 +146,7 @@ class BarangKemasanService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
         ];
     }
@@ -139,7 +192,7 @@ class BarangKemasanService
             'fields' => $columns,
             'fieldLabels' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->columnLabel($c)]),
             'fieldTypes' => collect($columns)->mapWithKeys(fn ($c) => [$c => $this->fieldType($c)]),
-            'selects' => $this->repository->selectData($columns),
+            'selects' => $this->selectData(),
             'primaryKey' => $this->primaryKey(),
             'audit' => $this->resolveAudit($item),
         ];
@@ -198,15 +251,6 @@ class BarangKemasanService
         return 'iId';
     }
 
-    private function search(): array
-    {
-        return array (
-            0 => 'vNama',
-            1 => 'vSku',
-            2 => 'iIdBarang',
-        );
-    }
-
     private function columns(): array
     {
         return array (
@@ -220,7 +264,7 @@ class BarangKemasanService
 
     private function columnLabel(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             'iIdBarang' => 'Barang',
             'vNama' => 'Nama',
             'vSku' => 'SKU',
@@ -230,21 +274,21 @@ class BarangKemasanService
         };
     }
 
-        private function fieldType(string $col): string
+    private function fieldType(string $col): string
     {
-            return match ($col) {
+        return match ($col) {
             default => 'text',
         };
     }
 
     private function relatedTables(): array
     {
-        return array ();
+        return [];
     }
 
     private function fileColumns(): array
     {
-        return array ();
+        return [];
     }
 
     private function uploadFile(Request $request, string $column): ?string
@@ -257,6 +301,14 @@ class BarangKemasanService
         $path = $file->store("uploads/{$this->tableRoute()}/{$column}", 'public');
 
         return $path;
+    }
+
+    private function selectData(): array
+    {
+        $selects = [];
+        $selects['iIdBarang'] = Barang::whereNull('eDeleted')->orWhere('eDeleted', '!=', 'Ya')->get(['iId as value', 'vNama as label']);
+
+        return $selects;
     }
 
     private function resolveAudit($item): ?array

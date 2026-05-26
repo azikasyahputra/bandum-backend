@@ -3,16 +3,41 @@ import { useState } from "react";
 import Pagination from "@/Components/Pagination";
 import DateRangePicker from "@/Components/DateRangePicker";
 
-const TABLE_COLUMNS = ["iIdBarang", "vNama", "vSku", "nHarga", "nHargastrike"];
+const TABLE_COLUMNS = ["vNama", "vSku", "nHarga", "nHargastrike"];
 
 export default function Index() {
     const { props } = usePage();
-    const { title, table, items, searchValues: initialSearch, relatedTables, primaryKey } = props;
+    const { title, table, items, searchValues: initialSearch, relatedTables, primaryKey, selects } = props;
+
+    const iIdBarangParam = initialSearch?.iIdBarang;
+    if (!iIdBarangParam) {
+        return (
+            <>
+                <Head title={title} />
+                <div className="tables-wrapper">
+                    <div className="row">
+                        <div className="col-lg-12">
+                            <div className="card-style mb-30">
+                                <div className="d-flex justify-content-between align-items-center mb-10" style={{ gap: 12 }}>
+                                    <h6 className="mb-0">{title}</h6>
+                                </div>
+                                <p style={{ color: "#dc2626", padding: "20px 0" }}>
+                                    <i className="lni lni-warning mr-5"></i>
+                                    Parameter iIdBarang wajib diisi untuk mengakses data barang kemasan.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     const builds = {};
     TABLE_COLUMNS.forEach((col) => {
         builds[col] = initialSearch?.[col] || "";
     });
+    builds["iIdBarang"] = initialSearch?.iIdBarang || "";
     const [inputs, setInputs] = useState(builds);
     const [timers, setTimers] = useState({});
     const [dateRanges, setDateRanges] = useState({
@@ -31,6 +56,7 @@ export default function Index() {
         TABLE_COLUMNS.forEach((c) => {
             if (updated[c]) params[c] = updated[c];
         });
+        if (updated.iIdBarang) params.iIdBarang = updated.iIdBarang;
         Object.entries(dateRanges).forEach(([k, v]) => {
             if (v) params[k] = v;
         });
@@ -50,6 +76,7 @@ export default function Index() {
         TABLE_COLUMNS.forEach((c) => {
             if (inputs[c]) params[c] = inputs[c];
         });
+        if (inputs.iIdBarang) params.iIdBarang = inputs.iIdBarang;
         Object.entries(updated).forEach(([k, v]) => {
             if (v) params[k] = v;
         });
@@ -176,21 +203,7 @@ export default function Index() {
                                     <thead>
                                         <tr>
                                             <th><h6>#</h6></th>
-                                            <th key="iIdBarang">
-                                                <h6>Barang</h6>
-                                                <div className="search-wrap">
-                                                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-                                                    </svg>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Cari"
-                                                        className="search-input"
-                                                        value={inputs["iIdBarang"] || ""}
-                                                        onChange={(e) => handleSearch("iIdBarang", e.target.value)}
-                                                    />
-                                                </div>
-                                            </th>
+
                                             <th key="vNama">
                                                 <h6>Nama</h6>
                                                 <div className="search-wrap">
@@ -270,7 +283,6 @@ export default function Index() {
                                             items.data.map((item, idx) => (
                                                 <tr key={item[primaryKey]}>
                                                     <td><p>{items.from + idx}</p></td>
-                                                        <td key="iIdBarang"><p>{formatValue("iIdBarang", item["iIdBarang"])}</p></td>
                                                         <td key="vNama"><p>{formatValue("vNama", item["vNama"])}</p></td>
                                                         <td key="nHarga"><p>{formatValue("nHarga", item["nHarga"])}</p></td>
                                                         <td key="nHargastrike"><p>{formatValue("nHargastrike", item["nHargastrike"])}</p></td>
@@ -328,7 +340,7 @@ export default function Index() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={8} style={{ textAlign: "center", padding: "20px 8px" }}>
+                                                <td colSpan={7} style={{ textAlign: "center", padding: "20px 8px" }}>
                                                     <p style={{ color: "#6b7280" }}>Belum ada data.</p>
                                                 </td>
                                             </tr>

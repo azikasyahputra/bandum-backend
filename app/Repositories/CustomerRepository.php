@@ -13,42 +13,92 @@ class CustomerRepository implements CustomerRepositoryContract
 {
     public function paginate(array $columns, array $searchCols, array $queryParams): LengthAwarePaginator
     {
-        $query = Customer::query();
+        $query = Customer::query()
+            ->whereNull('eDeleted')
+            ->orWhere('eDeleted', '!=', 'Ya');
 
-        $query->where(function ($q) {
-            $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-        });
-
-        $searchCols = array_unique(array_merge($columns, $searchCols));
-        $selectOpts = $this->selectOptions();
-
-        foreach ($searchCols as $col) {
-            $val = $queryParams[$col] ?? null;
-            if ($val === null || $val === '') {
-                continue;
-            }
-
-            if (isset($selectOpts[$col])) {
-                $config = $selectOpts[$col];
-                $relatedIds = $config['model']::where($config['label'], 'like', "%{$val}%")->pluck($config['value']);
-                $query->whereIn($col, $relatedIds);
-            } elseif (str_starts_with($col, 'iId')) {
-                $query->where($col, $val);
-            } else {
-                $query->where($col, 'like', "%{$val}%");
-            }
+        if ($vNama = $queryParams['vNama'] ?? null) {
+            $query->where('vNama', 'like', "%{$vNama}%");
         }
 
-        foreach (['tCreated', 'tUpdated'] as $col) {
-            $from = $queryParams[$col . '_from'] ?? null;
-            $to = $queryParams[$col . '_to'] ?? null;
+        if ($vEmail = $queryParams['vEmail'] ?? null) {
+            $query->where('vEmail', 'like', "%{$vEmail}%");
+        }
 
-            if ($from !== null && $from !== '') {
-                $query->where($col, '>=', $from);
-            }
-            if ($to !== null && $to !== '') {
-                $query->where($col, '<=', $to . ' 23:59:59');
-            }
+        if ($iIdUser = $queryParams['iIdUser'] ?? null) {
+            $query->where('iIdUser', $iIdUser);
+        }
+
+        if ($iIdJenisperusahaan = $queryParams['iIdJenisperusahaan'] ?? null) {
+            $query->where('iIdJenisperusahaan', $iIdJenisperusahaan);
+        }
+
+        if ($iIdKlasifikasiperusahaan = $queryParams['iIdKlasifikasiperusahaan'] ?? null) {
+            $query->where('iIdKlasifikasiperusahaan', $iIdKlasifikasiperusahaan);
+        }
+
+        if ($vProfilepic = $queryParams['vProfilepic'] ?? null) {
+            $query->where('vProfilepic', 'like', "%{$vProfilepic}%");
+        }
+
+        if ($vKtp = $queryParams['vKtp'] ?? null) {
+            $query->where('vKtp', 'like', "%{$vKtp}%");
+        }
+
+        if ($vFilektp = $queryParams['vFilektp'] ?? null) {
+            $query->where('vFilektp', 'like', "%{$vFilektp}%");
+        }
+
+        if ($vNpwp = $queryParams['vNpwp'] ?? null) {
+            $query->where('vNpwp', 'like', "%{$vNpwp}%");
+        }
+
+        if ($vFilenpwp = $queryParams['vFilenpwp'] ?? null) {
+            $query->where('vFilenpwp', 'like', "%{$vFilenpwp}%");
+        }
+
+        if ($vSiup = $queryParams['vSiup'] ?? null) {
+            $query->where('vSiup', 'like', "%{$vSiup}%");
+        }
+
+        if ($vFilesiup = $queryParams['vFilesiup'] ?? null) {
+            $query->where('vFilesiup', 'like', "%{$vFilesiup}%");
+        }
+
+        if ($vFileaktapendirian = $queryParams['vFileaktapendirian'] ?? null) {
+            $query->where('vFileaktapendirian', 'like', "%{$vFileaktapendirian}%");
+        }
+
+        if ($vFiledomisiliperusahaan = $queryParams['vFiledomisiliperusahaan'] ?? null) {
+            $query->where('vFiledomisiliperusahaan', 'like', "%{$vFiledomisiliperusahaan}%");
+        }
+
+        if ($eTipe = $queryParams['eTipe'] ?? null) {
+            $query->where('eTipe', $eTipe);
+        }
+
+        if ($eVerifikasi = $queryParams['eVerifikasi'] ?? null) {
+            $query->where('eVerifikasi', $eVerifikasi);
+        }
+
+        if ($isTrustedBuyer = $queryParams['isTrustedBuyer'] ?? null) {
+            $query->where('isTrustedBuyer', $isTrustedBuyer);
+        }
+
+        if ($tCreatedFrom = $queryParams['tCreated_from'] ?? null) {
+            $query->whereDate('tCreated', '>=', $tCreatedFrom);
+        }
+
+        if ($tCreatedTo = $queryParams['tCreated_to'] ?? null) {
+            $query->whereDate('tCreated', '<=', $tCreatedTo);
+        }
+
+        if ($tUpdatedFrom = $queryParams['tUpdated_from'] ?? null) {
+            $query->whereDate('tUpdated', '>=', $tUpdatedFrom);
+        }
+
+        if ($tUpdatedTo = $queryParams['tUpdated_to'] ?? null) {
+            $query->whereDate('tUpdated', '<=', $tUpdatedTo);
         }
 
         return $query->paginate(20)->withQueryString();
@@ -77,7 +127,7 @@ class CustomerRepository implements CustomerRepositoryContract
     {
         $item->timestamps = false;
         return $item->update([
-            'eDeleted' => 'ya',
+            'eDeleted' => 'Ya',
             'iUpdatedid' => auth()->id() ?? 1,
             'tUpdated' => now(),
         ]);
@@ -85,50 +135,11 @@ class CustomerRepository implements CustomerRepositoryContract
 
     public function resolveForeignKeys(LengthAwarePaginator $paginator): void
     {
-        $selectOpts = $this->selectOptions();
-
-        if (empty($selectOpts)) {
-            return;
-        }
-
-        $items = $paginator->items();
-        if (empty($items)) {
-            return;
-        }
-
-        foreach ($selectOpts as $col => $config) {
-            $ids = collect($items)->pluck($col)->unique()->filter()->values();
-            if ($ids->isEmpty()) {
-                continue;
-            }
-
-            $class = $config['model'];
-            $related = $class::whereIn($config['value'], $ids)->pluck($config['label'], $config['value']);
-
-            foreach ($items as $item) {
-                $fk = $item->getAttribute($col);
-                if ($fk !== null && $related->has($fk)) {
-                    $item->setAttribute($col, $related[$fk]);
-                }
-            }
-        }
     }
 
     public function selectData(array $fields): array
     {
         $selects = [];
-        $selectOpts = $this->selectOptions();
-
-        foreach ($fields as $col) {
-            $config = $selectOpts[$col] ?? null;
-
-            if ($config) {
-                $class = $config['model'];
-                $selects[$col] = $class::where(function ($q) {
-                    $q->where('eDeleted', '!=', 'ya')->orWhereNull('eDeleted');
-                })->get([$config['value'] . ' as value', $config['label'] . ' as label']);
-            }
-        }
 
         foreach ($fields as $col) {
             $enumOptions = $this->enumOptions($col);
@@ -138,12 +149,6 @@ class CustomerRepository implements CustomerRepositoryContract
         }
 
         return $selects;
-    }
-
-    private function selectOptions(): array
-    {
-        return array (
-);
     }
 
     private function enumOptions(string $col): array
