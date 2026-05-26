@@ -18,10 +18,7 @@ return new class extends Migration
             ->nullable();
             $table->decimal('nHargastrike', 14, 0)
             ->nullable();
-            $table->integer('nIsi');
-            $table->enum('eTerkecil', ['ya', 'tidak'])
-            ->nullable();
-            $table->enum('eTerbesar', ['ya', 'tidak'])
+            $table->string('vSku', 255)
             ->nullable();
             $table->enum('eDeleted', ['ya', 'tidak'])
             ->nullable();

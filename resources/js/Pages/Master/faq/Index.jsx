@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
 import Pagination from "@/Components/Pagination";
+import DateRangePicker from "@/Components/DateRangePicker";
 
 const TABLE_COLUMNS = ["vTitle", "vIsi", "eTampil"];
 
@@ -43,11 +44,8 @@ export default function Index() {
         setTimers((prev) => ({ ...prev, [col]: timer }));
     };
 
-    const handleDateRange = (field, value) => {
-        const updated = { ...dateRanges, [field]: value };
-        setDateRanges(updated);
-
-        clearTimeout(timers[field]);
+        const commitDateRange = (updated) => {
+        clearTimeout(timers["_range"]);
         const params = {};
         TABLE_COLUMNS.forEach((c) => {
             if (inputs[c]) params[c] = inputs[c];
@@ -61,8 +59,21 @@ export default function Index() {
                 replace: true,
             });
         }, 300);
-        setTimers((prev) => ({ ...prev, [field]: timer }));
+        setTimers((prev) => ({ ...prev, _range: timer }));
     };
+    const handleDateRange = (action, value) => {
+        if (action === "clear") {
+            const cleared = { tUpdated_from: "", tUpdated_to: "" };
+            setDateRanges((prev) => ({ ...prev, ...cleared }));
+            commitDateRange(cleared);
+            return;
+        }
+        const field = action === "from" ? "tUpdated_from" : "tUpdated_to";
+        const updated = { ...dateRanges, [field]: value };
+        setDateRanges(updated);
+        commitDateRange(updated);
+    };
+
 
     const handleDelete = (id) => {
         if (confirm("Yakin ingin menghapus data ini?")) {
@@ -210,18 +221,14 @@ export default function Index() {
                                                     />
                                                 </div>
                                             </th>
-                                            <th key="tUpdated">
+                                                                                        <th key="tUpdated" style={{ minWidth: 160, width: 160 }}>
                                                 <h6>Diubah</h6>
-                                                <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
-                                                        value={dateRanges.tUpdated_from}
-                                                        onChange={(e) => handleDateRange("tUpdated_from", e.target.value)}
-                                                        placeholder="Dari"
-                                                    />
-                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
-                                                        value={dateRanges.tUpdated_to}
-                                                        onChange={(e) => handleDateRange("tUpdated_to", e.target.value)}
-                                                        placeholder="Sampai"
+                                                <div style={{ marginTop: 4 }}>
+                                                    <DateRangePicker
+                                                        from={dateRanges.tUpdated_from}
+                                                        to={dateRanges.tUpdated_to}
+                                                        onChange={handleDateRange}
+                                                        label="Filter tanggal"
                                                     />
                                                 </div>
                                             </th>
@@ -236,7 +243,17 @@ export default function Index() {
                                                         <td key="vTitle"><p>{formatValue("vTitle", item["vTitle"])}</p></td>
                                                         <td key="vIsi"><p>{formatValue("vIsi", item["vIsi"])}</p></td>
                                                         <td key="eTampil"><p>{formatValue("eTampil", item["eTampil"])}</p></td>
-                                                        <td key="tUpdated"><p>{item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-"} / {item?.vUpdater || (item?.iUpdatedid ? "-" : "-")}</p></td>
+                                                        <td key="tUpdated" style={{ whiteSpace: "nowrap" }}>
+                                                            <p>
+                                                                {item?.tUpdated
+                                                                    ? String(item.tUpdated)
+                                                                    : item?.tCreated
+                                                                      ? String(item.tCreated)
+                                                                      : "-"}
+                                                                <br />
+                                                                {item?.vUpdater || "-"}
+                                                            </p>
+                                                        </td>
                                                         <td>
                                                         <div className="action d-flex" style={{ gap: 5, alignItems: "center" }}>
                                                             {relatedTables && relatedTables.map((rt) => (

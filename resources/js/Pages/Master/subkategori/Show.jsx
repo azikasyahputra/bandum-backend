@@ -8,12 +8,9 @@ export default function Show() {
     const formatValue = (col) => {
         const value = item?.[col];
         if (value === null || value === undefined || value === "") return "-";
-        const type = fieldTypes[col] || "text";
-        if (type === "enum") {
-            const options = selects?.[col] || [];
-            const match = options.find((o) => o.value === value);
-            return match ? match.label : value;
-        }
+        const options = selects?.[col] || [];
+        const match = options.find((o) => o.value === value || String(o.value) === String(value));
+        if (match) return match.label;
         return value;
     };
 

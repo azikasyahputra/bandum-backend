@@ -4,31 +4,56 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Master;
 
-class NegaraController extends BaseMasterController
+use App\Http\Controllers\Controller;
+use App\Services\NegaraService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
+
+class NegaraController extends Controller
 {
-    public function modelClass(): string
+    public function __construct(
+        private NegaraService $service,
+    ) {}
+
+    public function index(Request $request): Response
     {
-        return \App\Models\Negara::class;
+        return inertia('Master/' . $this->service->tableRoute() . '/Index', $this->service->paginated($request));
     }
 
-    public function tableName(): string
+    public function show(int $id): Response
     {
-        return 'master_negara';
+        return inertia('Master/' . $this->service->tableRoute() . '/Show', $this->service->detail($id));
     }
 
-    public function tableRoute(): string
+    public function create(): Response
     {
-        return 'negara';
+        return inertia('Master/' . $this->service->tableRoute() . '/Create', $this->service->create());
     }
 
-    public function label(): string
+    public function store(Request $request): RedirectResponse
     {
-        return 'Negara';
+        $id = $this->service->store($request);
+
+        return redirect("/master/" . $this->service->tableRoute() . "/{$id}/edit")->with('success', 'Data berhasil ditambahkan.');
     }
 
-    public function search(): array
+    public function edit(int $id): Response
     {
-        return ['vNama', 'vKode'];
+        return inertia('Master/' . $this->service->tableRoute() . '/Edit', $this->service->edit($id));
     }
 
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $this->service->update($request, $id);
+
+        return redirect("/master/" . $this->service->tableRoute() . "/{$id}/edit")->with('success', 'Data berhasil diubah.');
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $this->service->destroy($id);
+
+        return redirect("/master/" . $this->service->tableRoute())->with('success', 'Data berhasil dihapus.');
+    }
 }

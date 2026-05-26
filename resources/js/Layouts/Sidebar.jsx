@@ -11,32 +11,32 @@ const sidebarGroups = [
         items: [{ label: "eCommerce", href: "/dashboard" }],
         open: true,
     },
-    {
-        id: "pages",
-        label: "Pages",
-        icon: "lni lni-files",
-        items: [
-            { label: "Settings", href: "/settings" },
-            { label: "Blank Page", href: "/blank-page" },
-        ],
-    },
-    {
-        label: "Invoice",
-        icon: "lni lni-empty-file",
-        href: "/invoice",
-    },
-    {
-        id: "auth",
-        label: "Auth",
-        icon: "lni lni-enter",
-        items: [
-            { label: "Sign In", href: "/signin" },
-            { label: "Sign Up", href: "/signup" },
-        ],
-    },
-    {
-        divider: true,
-    },
+    // {
+    //     id: "pages",
+    //     label: "Pages",
+    //     icon: "lni lni-files",
+    //     items: [
+    //         { label: "Settings", href: "/settings" },
+    //         { label: "Blank Page", href: "/blank-page" },
+    //     ],
+    // },
+    // {
+    //     label: "Invoice",
+    //     icon: "lni lni-empty-file",
+    //     href: "/invoice",
+    // },
+    // {
+    //     id: "auth",
+    //     label: "Auth",
+    //     icon: "lni lni-enter",
+    //     items: [
+    //         { label: "Sign In", href: "/signin" },
+    //         { label: "Sign Up", href: "/signup" },
+    //     ],
+    // },
+    // {
+    //     divider: true,
+    // },
     {
         id: "master",
         label: "Master",
@@ -86,63 +86,87 @@ const sidebarGroups = [
             { label: "Invoice", href: "/transaksi/invoice" },
         ],
     },
-    {
-        id: "ui-elements",
-        label: "UI Elements",
-        icon: "lni lni-layout",
-        items: [
-            { label: "Alerts", href: "/alerts" },
-            { label: "Buttons", href: "/buttons" },
-            { label: "Cards", href: "/cards" },
-            { label: "Typography", href: "/typography" },
-        ],
-    },
-    {
-        id: "icons",
-        label: "Icons",
-        icon: "lni lni-display",
-        items: [
-            { label: "LineIcons", href: "/icons" },
-            { label: "MDI Icons", href: "/mdi-icons" },
-        ],
-    },
-    {
-        id: "forms",
-        label: "Forms",
-        icon: "lni lni-write",
-        items: [{ label: "Form Elements", href: "/form-elements" }],
-    },
-    {
-        label: "Tables",
-        icon: "lni lni-layout",
-        href: "/tables",
-    },
-    {
-        divider: true,
-    },
-    {
-        label: "Notifications",
-        icon: "lni lni-alarm",
-        href: "/notifications",
-    },
+    // {
+    //     id: "ui-elements",
+    //     label: "UI Elements",
+    //     icon: "lni lni-layout",
+    //     items: [
+    //         { label: "Alerts", href: "/alerts" },
+    //         { label: "Buttons", href: "/buttons" },
+    //         { label: "Cards", href: "/cards" },
+    //         { label: "Typography", href: "/typography" },
+    //     ],
+    // },
+    // {
+    //     id: "icons",
+    //     label: "Icons",
+    //     icon: "lni lni-display",
+    //     items: [
+    //         { label: "LineIcons", href: "/icons" },
+    //         { label: "MDI Icons", href: "/mdi-icons" },
+    //     ],
+    // },
+    // {
+    //     id: "forms",
+    //     label: "Forms",
+    //     icon: "lni lni-write",
+    //     items: [{ label: "Form Elements", href: "/form-elements" }],
+    // },
+    // {
+    //     label: "Tables",
+    //     icon: "lni lni-layout",
+    //     href: "/tables",
+    // },
+    // {
+    //     divider: true,
+    // },
+    // {
+    //     label: "Notifications",
+    //     icon: "lni lni-alarm",
+    //     href: "/notifications",
+    // },
 ];
+
+function isActiveLink(href, currentUrl) {
+    if (href === "#" || !href) return false;
+    if (currentUrl === href) return true;
+    if (currentUrl.startsWith(href + "/")) return true;
+    return false;
+}
 
 function SidebarLink({ href, children, className = "", title, onClick }) {
     if (href === "#") {
         return (
-            <a href={href} className={className} data-title={title} onClick={onClick}>
+            <a
+                href={href}
+                className={className}
+                data-title={title}
+                onClick={onClick}
+            >
                 {children}
             </a>
         );
     }
     return (
-        <Link href={href} className={className} data-title={title} onClick={onClick}>
+        <Link
+            href={href}
+            className={className}
+            data-title={title}
+            onClick={onClick}
+        >
             {children}
         </Link>
     );
 }
 
-function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar }) {
+function SidebarItem({
+    item,
+    currentUrl,
+    isOpen,
+    onToggle,
+    mini,
+    onToggleSidebar,
+}) {
     const [showFlyout, setShowFlyout] = useState(false);
 
     if (item.divider) {
@@ -153,7 +177,7 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar
         );
     }
 
-    const isActive = item.href && item.href !== "#" && currentUrl === item.href;
+    const isActive = isActiveLink(item.href, currentUrl);
 
     if (mini) {
         return (
@@ -163,13 +187,24 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar
                 onMouseLeave={() => setShowFlyout(false)}
             >
                 {!item.items ? (
-                    <SidebarLink href={item.href} title={item.label} onClick={onToggleSidebar}>
+                    <SidebarLink
+                        href={item.href}
+                        title={item.label}
+                        onClick={onToggleSidebar}
+                    >
                         <span className="icon">
                             <i className={item.icon}></i>
                         </span>
                     </SidebarLink>
                 ) : (
-                    <button type="button" className={isOpen ? "" : "collapsed"} onClick={() => { onToggleSidebar(); onToggle(); }}>
+                    <button
+                        type="button"
+                        className={isOpen ? "" : "collapsed"}
+                        onClick={() => {
+                            onToggleSidebar();
+                            onToggle();
+                        }}
+                    >
                         <span className="icon">
                             <i className={item.icon}></i>
                         </span>
@@ -177,7 +212,9 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar
                 )}
                 {showFlyout && (
                     <div className="sidebar-flyout">
-                        <div className="sidebar-flyout-header">{item.label}</div>
+                        <div className="sidebar-flyout-header">
+                            {item.label}
+                        </div>
                         {item.items ? (
                             <ul className="sidebar-flyout-menu">
                                 {item.items.map((child) => (
@@ -185,7 +222,10 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar
                                         <SidebarLink
                                             href={child.href}
                                             className={
-                                                child.href !== "#" && currentUrl === child.href
+                                                isActiveLink(
+                                                    child.href,
+                                                    currentUrl,
+                                                )
                                                     ? "active"
                                                     : ""
                                             }
@@ -196,7 +236,10 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar
                                 ))}
                             </ul>
                         ) : (
-                            <SidebarLink href={item.href} className="sidebar-flyout-link">
+                            <SidebarLink
+                                href={item.href}
+                                className="sidebar-flyout-link"
+                            >
                                 {item.label}
                             </SidebarLink>
                         )}
@@ -246,7 +289,7 @@ function SidebarItem({ item, currentUrl, isOpen, onToggle, mini, onToggleSidebar
                         <SidebarLink
                             href={child.href}
                             className={
-                                child.href !== "#" && currentUrl === child.href
+                                isActiveLink(child.href, currentUrl)
                                     ? "active"
                                     : ""
                             }
@@ -266,7 +309,8 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }) {
         sidebarGroups.reduce((menus, item) => {
             if (
                 item.items &&
-                (item.open || item.items.some((child) => child.href === url))
+                (item.open ||
+                    item.items.some((child) => isActiveLink(child.href, url)))
             ) {
                 menus[item.id] = true;
             }
@@ -285,8 +329,26 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }) {
         <aside className={`sidebar-nav-wrapper ${sidebarOpen ? "active" : ""}`}>
             <div className="navbar-logo">
                 <Link href="/">
-                    <span className="logo-full" style={{ fontSize: 20, fontWeight: 700, letterSpacing: 1 }}>BandumOffice</span>
-                    <span className="logo-mini" style={{ display: "none", fontSize: 18, fontWeight: 700 }}>BO</span>
+                    <span
+                        className="logo-full"
+                        style={{
+                            fontSize: 20,
+                            fontWeight: 700,
+                            letterSpacing: 1,
+                        }}
+                    >
+                        BandumOffice
+                    </span>
+                    <span
+                        className="logo-mini"
+                        style={{
+                            display: "none",
+                            fontSize: 18,
+                            fontWeight: 700,
+                        }}
+                    >
+                        BO
+                    </span>
                 </Link>
             </div>
 

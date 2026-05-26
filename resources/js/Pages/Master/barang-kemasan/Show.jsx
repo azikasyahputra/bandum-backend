@@ -69,19 +69,8 @@ export default function Show() {
                                     <p className="show-field-value">{formatValue("nHargastrike")}</p>
                                 </div>
                                 <div className="col-12 col-md-6 col-lg-4">
-                                    <p className="show-field-label">{fieldLabels["nIsi"] || "nIsi"}</p>
-                                    <p className="show-field-value">{formatValue("nIsi")}</p>
-                                </div>
-                                <div className="col-12 col-md-6 col-lg-4">
-                                    <p className="show-field-label">{fieldLabels["eTerkecil"] || "eTerkecil"}</p>
-                                    <p className="show-field-value">{formatValue("eTerkecil")}</p>
-                                </div>
-                                </div>
-
-                                <div className="row">
-                                <div className="col-12 col-md-6 col-lg-4">
-                                    <p className="show-field-label">{fieldLabels["eTerbesar"] || "eTerbesar"}</p>
-                                    <p className="show-field-value">{formatValue("eTerbesar")}</p>
+                                    <p className="show-field-label">{fieldLabels["vSku"] || "vSku"}</p>
+                                    <p className="show-field-value">{formatValue("vSku")}</p>
                                 </div>
                                 </div>
 

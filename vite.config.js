@@ -8,18 +8,8 @@ export default defineConfig({
         tailwindcss(),
         laravel({
             input: 'resources/js/app.jsx',
-            ssr: 'resources/js/ssr.jsx',
             refresh: true,
         }),
         react(),
     ],
-    optimizeDeps: {
-        include: [
-            "ckeditor5",
-            "@ckeditor/ckeditor5-react",
-        ],
-    },
-    ssr: {
-        noExternal: ["ckeditor5", "@ckeditor/ckeditor5-react"],
-    },
 })

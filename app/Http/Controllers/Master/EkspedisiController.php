@@ -4,31 +4,56 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Master;
 
-class EkspedisiController extends BaseMasterController
+use App\Http\Controllers\Controller;
+use App\Services\EkspedisiService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
+
+class EkspedisiController extends Controller
 {
-    public function modelClass(): string
+    public function __construct(
+        private EkspedisiService $service,
+    ) {}
+
+    public function index(Request $request): Response
     {
-        return \App\Models\Ekspedisi::class;
+        return inertia('Master/' . $this->service->tableRoute() . '/Index', $this->service->paginated($request));
     }
 
-    public function tableName(): string
+    public function show(int $id): Response
     {
-        return 'master_ekspedisi';
+        return inertia('Master/' . $this->service->tableRoute() . '/Show', $this->service->detail($id));
     }
 
-    public function tableRoute(): string
+    public function create(): Response
     {
-        return 'ekspedisi';
+        return inertia('Master/' . $this->service->tableRoute() . '/Create', $this->service->create());
     }
 
-    public function label(): string
+    public function store(Request $request): RedirectResponse
     {
-        return 'Ekspedisi';
+        $id = $this->service->store($request);
+
+        return redirect("/master/" . $this->service->tableRoute() . "/{$id}/edit")->with('success', 'Data berhasil ditambahkan.');
     }
 
-    public function search(): array
+    public function edit(int $id): Response
     {
-        return ['vNama'];
+        return inertia('Master/' . $this->service->tableRoute() . '/Edit', $this->service->edit($id));
     }
 
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $this->service->update($request, $id);
+
+        return redirect("/master/" . $this->service->tableRoute() . "/{$id}/edit")->with('success', 'Data berhasil diubah.');
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $this->service->destroy($id);
+
+        return redirect("/master/" . $this->service->tableRoute())->with('success', 'Data berhasil dihapus.');
+    }
 }

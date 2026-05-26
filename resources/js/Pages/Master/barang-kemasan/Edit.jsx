@@ -55,16 +55,7 @@ export default function Form() {
                                     <InputText field="nHargastrike" label={fieldLabels["nHargastrike"] || "nHargastrike"} value={data["nHargastrike"] ?? ""} onChange={(v) => setData("nHargastrike", v)} error={errors["nHargastrike"]} />
                                 </div>
                                 <div className="col-12 col-md-6 col-lg-4">
-                                    <InputText field="nIsi" label={fieldLabels["nIsi"] || "nIsi"} value={data["nIsi"] ?? ""} onChange={(v) => setData("nIsi", v)} error={errors["nIsi"]} />
-                                </div>
-                                <div className="col-12 col-md-6 col-lg-4">
-                                    <InputEnum field="eTerkecil" label={fieldLabels["eTerkecil"] || "eTerkecil"} value={data["eTerkecil"] ?? ""} onChange={(v) => setData("eTerkecil", v)} error={errors["eTerkecil"]} options={selects?.["eTerkecil"] || []} />
-                                </div>
-                                </div>
-
-                                <div className="row">
-                                <div className="col-12 col-md-6 col-lg-4">
-                                    <InputEnum field="eTerbesar" label={fieldLabels["eTerbesar"] || "eTerbesar"} value={data["eTerbesar"] ?? ""} onChange={(v) => setData("eTerbesar", v)} error={errors["eTerbesar"]} options={selects?.["eTerbesar"] || []} />
+                                    <InputText field="vSku" label={fieldLabels["vSku"] || "vSku"} value={data["vSku"] ?? ""} onChange={(v) => setData("vSku", v)} error={errors["vSku"]} />
                                 </div>
                                 </div>
 

@@ -3,7 +3,16 @@ import FormActions from "@/Components/Forms/FormActions";
 
 export default function Show() {
     const { props } = usePage();
-    const { title, table, fields, fieldLabels, fieldTypes, selects, item, primaryKey } = props;
+    const {
+        title,
+        table,
+        fields,
+        fieldLabels,
+        fieldTypes,
+        selects,
+        item,
+        primaryKey,
+    } = props;
 
     const formatValue = (col) => {
         const value = item?.[col];
@@ -26,13 +35,67 @@ export default function Show() {
         return (
             <div>
                 {isImage && (
-                    <div style={{ width: "100%", height: 150, border: "2px solid #d1d5db", borderRadius: 8, position: "relative", overflow: "hidden", background: "#f9fafb", marginBottom: 6 }}>
-                        <img src={src} alt={filename} onError={(e) => { e.target.style.display = "none"; }} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }} />
-                        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: 11, padding: "4px 8px", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{filename}</div>
+                    <div
+                        style={{
+                            width: "100%",
+                            height: 150,
+                            border: "2px solid #d1d5db",
+                            borderRadius: 8,
+                            position: "relative",
+                            overflow: "hidden",
+                            background: "#f9fafb",
+                            marginBottom: 6,
+                        }}
+                    >
+                        <img
+                            src={src}
+                            alt={filename}
+                            onError={(e) => {
+                                e.target.style.display = "none";
+                            }}
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                            }}
+                        />
+                        <div
+                            style={{
+                                position: "absolute",
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                background: "rgba(0,0,0,0.5)",
+                                color: "#fff",
+                                fontSize: 11,
+                                padding: "4px 8px",
+                                textAlign: "center",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                            }}
+                        >
+                            {filename}
+                        </div>
                     </div>
                 )}
                 <div style={{ textAlign: "right" }}>
-                    <a href={src} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#365cf5", textDecoration: "none" }}>
+                    <a
+                        href={src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            fontSize: 12,
+                            color: "#365cf5",
+                            textDecoration: "none",
+                        }}
+                    >
                         <i className="lni lni-eye" style={{ fontSize: 14 }}></i>
                         Lihat {isImage ? "Gambar" : "File"}
                     </a>
@@ -48,40 +111,60 @@ export default function Show() {
                 <div className="row">
                     <div className="col-lg-12">
                         <div className="card-style mb-30">
-                                <div className="row">
-                                    <div className="col-12">
-                                        <p className="show-field-label">{fieldLabels["vTitle"] || "vTitle"}</p>
-                                        <p className="show-field-value">{formatValue("vTitle")}</p>
-                                    </div>
+                            <div className="row">
+                                <div className="col-12">
+                                    <p className="show-field-label">
+                                        {fieldLabels["vTitle"] || "vTitle"}
+                                    </p>
+                                    <p className="show-field-value">
+                                        {formatValue("vTitle")}
+                                    </p>
                                 </div>
+                            </div>
 
-                                <div className="row">
-                                    <div className="col-12">
-                                        <p className="show-field-label">{fieldLabels["vIsi"] || "vIsi"}</p>
-                                        <p className="show-field-value" dangerouslySetInnerHTML={{__html: item?.["vIsi"] ?? ""}} />
-                                    </div>
+                            <div className="row">
+                                <div className="col-12">
+                                    <p className="show-field-label">
+                                        {fieldLabels["vIsi"] || "vIsi"}
+                                    </p>
+                                    <p
+                                        className="show-field-value"
+                                        dangerouslySetInnerHTML={{
+                                            __html: item?.["vIsi"] ?? "",
+                                        }}
+                                    />
                                 </div>
+                            </div>
 
-                                <div className="row">
-                                    <div className="col-12 col-md-6 col-lg-6">
-                                        <p className="show-field-label">{fieldLabels["vThumbnails"] || "vThumbnails"}</p>
-                                        <p className="show-field-value">{formatFile("vThumbnails")}</p>
-                                    </div>
-                                    <div className="col-12 col-md-6 col-lg-6">
-                                        <p className="show-field-label">{fieldLabels["eTampil"] || "eTampil"}</p>
-                                        <p className="show-field-value">{formatValue("eTampil")}</p>
-                                    </div>
+                            <div className="row">
+                                <div className="col-12 col-md-6 col-lg-6">
+                                    <p className="show-field-label">
+                                        {fieldLabels["vThumbnails"] ||
+                                            "vThumbnails"}
+                                    </p>
+                                    <p className="show-field-value">
+                                        {formatFile("vThumbnails")}
+                                    </p>
                                 </div>
+                                <div className="col-12 col-md-6 col-lg-6">
+                                    <p className="show-field-label">
+                                        {fieldLabels["eTampil"] || "eTampil"}
+                                    </p>
+                                    <p className="show-field-value">
+                                        {formatValue("eTampil")}
+                                    </p>
+                                </div>
+                            </div>
 
-                                <FormActions backUrl={`/master/${table}`}>
-                                    <Link
-                                        href={`/master/${table}/${item?.[primaryKey]}/edit`}
-                                        className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
-                                    >
-                                        <i className="lni lni-pencil-alt mr-5"></i>
-                                        Edit
-                                    </Link>
-                                </FormActions>
+                            <FormActions backUrl={`/master/${table}`}>
+                                <Link
+                                    href={`/master/${table}/${item?.[primaryKey]}/edit`}
+                                    className="main-btn primary-btn-outline rounded-full btn-hover btn-sm"
+                                >
+                                    <i className="lni lni-pencil-alt mr-5"></i>
+                                    Edit
+                                </Link>
+                            </FormActions>
                         </div>
                     </div>
                 </div>

@@ -4,48 +4,56 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Master;
 
-class BarangController extends BaseMasterController
+use App\Http\Controllers\Controller;
+use App\Services\BarangService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Response;
+
+class BarangController extends Controller
 {
-    public function modelClass(): string
+    public function __construct(
+        private BarangService $service,
+    ) {}
+
+    public function index(Request $request): Response
     {
-        return \App\Models\Barang::class;
+        return inertia('Master/' . $this->service->tableRoute() . '/Index', $this->service->paginated($request));
     }
 
-    public function tableName(): string
+    public function show(int $id): Response
     {
-        return 'master_barang';
+        return inertia('Master/' . $this->service->tableRoute() . '/Show', $this->service->detail($id));
     }
 
-    public function tableRoute(): string
+    public function create(): Response
     {
-        return 'barang';
+        return inertia('Master/' . $this->service->tableRoute() . '/Create', $this->service->create());
     }
 
-    public function label(): string
+    public function store(Request $request): RedirectResponse
     {
-        return 'Barang';
+        $id = $this->service->store($request);
+
+        return redirect("/master/" . $this->service->tableRoute() . "/{$id}/edit")->with('success', 'Data berhasil ditambahkan.');
     }
 
-    public function search(): array
+    public function edit(int $id): Response
     {
-        return ['vNama', 'vDeskripsisingkat'];
+        return inertia('Master/' . $this->service->tableRoute() . '/Edit', $this->service->edit($id));
     }
 
-    public function relatedTables(): array
+    public function update(Request $request, int $id): RedirectResponse
     {
-        return [
-            ['route' => 'barang-kemasan', 'label' => 'Kemasan', 'foreignKey' => 'iIdBarang'],
-            ['route' => 'barang-media', 'label' => 'Media', 'foreignKey' => 'iIdBarang'],
-        ];
+        $this->service->update($request, $id);
+
+        return redirect("/master/" . $this->service->tableRoute() . "/{$id}/edit")->with('success', 'Data berhasil diubah.');
     }
 
-    public function selectOptions(): array
+    public function destroy(int $id): RedirectResponse
     {
-        return [
-            'iIdBrand' => ['model' => \App\Models\Brand::class, 'value' => 'iId', 'label' => 'vNama'],
-            'iIdKategori' => ['model' => \App\Models\Kategori::class, 'value' => 'iId', 'label' => 'vNama'],
-            'iIdSubkategori' => ['model' => \App\Models\Subkategori::class, 'value' => 'iId', 'label' => 'vNama'],
-        ];
-    }
+        $this->service->destroy($id);
 
+        return redirect("/master/" . $this->service->tableRoute())->with('success', 'Data berhasil dihapus.');
+    }
 }

@@ -8,12 +8,9 @@ export default function Show() {
     const formatValue = (col) => {
         const value = item?.[col];
         if (value === null || value === undefined || value === "") return "-";
-        const type = fieldTypes[col] || "text";
-        if (type === "enum") {
-            const options = selects?.[col] || [];
-            const match = options.find((o) => o.value === value);
-            return match ? match.label : value;
-        }
+        const options = selects?.[col] || [];
+        const match = options.find((o) => o.value === value || String(o.value) === String(value));
+        if (match) return match.label;
         return value;
     };
 
@@ -81,7 +78,7 @@ export default function Show() {
                                 <div className="row">
                                 <div className="col-12">
                                     <p className="show-field-label">{fieldLabels["vDeskripsidetail"] || "vDeskripsidetail"}</p>
-                                    <p className="show-field-value">{formatValue("vDeskripsidetail")}</p>
+                                    <div className="show-field-value" dangerouslySetInnerHTML={{ __html: item?.["vDeskripsidetail"] ?? "" }} />
                                 </div>
                                 </div>
 

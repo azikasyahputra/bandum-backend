@@ -9,16 +9,26 @@ import FormActions from "@/Components/Forms/FormActions";
 
 export default function Form() {
     const { props } = usePage();
-    const { title, table, fields, fieldLabels, fieldTypes, selects, item, primaryKey } = props;
+    const {
+        title,
+        table,
+        fields,
+        fieldLabels,
+        fieldTypes,
+        selects,
+        item,
+        primaryKey,
+    } = props;
 
     const isEdit = !!item;
 
     const defaultData = {};
     fields.forEach((field) => {
-        defaultData[field] = isEdit ? item[field] ?? "" : "";
+        defaultData[field] = isEdit ? (item[field] ?? "") : "";
     });
 
-    const { data, setData, post, put, processing, errors } = useForm(defaultData);
+    const { data, setData, post, put, processing, errors } =
+        useForm(defaultData);
 
     const submit = (e) => {
         e.preventDefault();
@@ -40,26 +50,72 @@ export default function Form() {
                             <form onSubmit={submit}>
                                 <div className="row">
                                     <div className="col-12">
-                                        <InputText field="vTitle" label={fieldLabels["vTitle"] || "vTitle"} value={data["vTitle"] ?? ""} onChange={(v) => setData("vTitle", v)} error={errors["vTitle"]} />
+                                        <InputText
+                                            field="vTitle"
+                                            label={
+                                                fieldLabels["vTitle"] ||
+                                                "vTitle"
+                                            }
+                                            value={data["vTitle"] ?? ""}
+                                            onChange={(v) =>
+                                                setData("vTitle", v)
+                                            }
+                                            error={errors["vTitle"]}
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="row">
                                     <div className="col-12">
-                                        <InputEditor field="vIsi" label={fieldLabels["vIsi"] || "vIsi"} value={data["vIsi"] ?? ""} onChange={(v) => setData("vIsi", v)} error={errors["vIsi"]} />
+                                        <InputEditor
+                                            field="vIsi"
+                                            label={
+                                                fieldLabels["vIsi"] || "vIsi"
+                                            }
+                                            value={data["vIsi"] ?? ""}
+                                            onChange={(v) => setData("vIsi", v)}
+                                            error={errors["vIsi"]}
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="row">
                                     <div className="col-12 col-md-6 col-lg-6">
-                                        <InputFile field="vThumbnails" label={fieldLabels["vThumbnails"] || "vThumbnails"} value={data["vThumbnails"] ?? ""} onChange={(v) => setData("vThumbnails", v)} error={errors["vThumbnails"]} />
+                                        <InputFile
+                                            field="vThumbnails"
+                                            label={
+                                                fieldLabels["vThumbnails"] ||
+                                                "vThumbnails"
+                                            }
+                                            value={data["vThumbnails"] ?? ""}
+                                            onChange={(v) =>
+                                                setData("vThumbnails", v)
+                                            }
+                                            error={errors["vThumbnails"]}
+                                        />
                                     </div>
                                     <div className="col-12 col-md-6 col-lg-6">
-                                        <InputEnum field="eTampil" label={fieldLabels["eTampil"] || "eTampil"} value={data["eTampil"] ?? ""} onChange={(v) => setData("eTampil", v)} error={errors["eTampil"]} options={selects?.["eTampil"] || []} />
+                                        <InputEnum
+                                            field="eTampil"
+                                            label={
+                                                fieldLabels["eTampil"] ||
+                                                "eTampil"
+                                            }
+                                            value={data["eTampil"] ?? ""}
+                                            onChange={(v) =>
+                                                setData("eTampil", v)
+                                            }
+                                            error={errors["eTampil"]}
+                                            options={selects?.["eTampil"] || []}
+                                        />
                                     </div>
                                 </div>
 
-                                <FormActions backUrl={`/master/${table}`} processing={processing} isEdit={isEdit} />
+                                <FormActions
+                                    backUrl={`/master/${table}`}
+                                    processing={processing}
+                                    isEdit={isEdit}
+                                />
                             </form>
                         </div>
                     </div>

@@ -1,6 +1,8 @@
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import { useState } from "react";
 import InputText from "@/Components/Forms/InputText";
 import InputTextarea from "@/Components/Forms/InputTextarea";
+import InputEditor from "@/Components/Forms/InputEditor";
 import InputFile from "@/Components/Forms/InputFile";
 import InputEnum from "@/Components/Forms/InputEnum";
 import InputSelect from "@/Components/Forms/InputSelect";
@@ -19,6 +21,19 @@ export default function Form() {
     });
 
     const { data, setData, post, put, processing, errors } = useForm(defaultData);
+    const [subkategoriOptions, setSubkategoriOptions] = useState(selects?.["iIdSubkategori"] || []);
+
+    const handleKategoriChange = (v) => {
+        setData("iIdKategori", v);
+        setData("iIdSubkategori", "");
+        if (v) {
+            fetch(`/master/subkategori/by-kategori/${v}`)
+                .then(r => r.json())
+                .then(setSubkategoriOptions);
+        } else {
+            setSubkategoriOptions(selects?.["iIdSubkategori"] || []);
+        }
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -46,13 +61,13 @@ export default function Form() {
                                     <InputSelect field="iIdBrand" label={fieldLabels["iIdBrand"] || "iIdBrand"} value={data["iIdBrand"] ?? ""} onChange={(v) => setData("iIdBrand", v)} error={errors["iIdBrand"]} options={selects?.["iIdBrand"] || []} />
                                 </div>
                                 <div className="col-12 col-md-6 col-lg-4">
-                                    <InputSelect field="iIdKategori" label={fieldLabels["iIdKategori"] || "iIdKategori"} value={data["iIdKategori"] ?? ""} onChange={(v) => setData("iIdKategori", v)} error={errors["iIdKategori"]} options={selects?.["iIdKategori"] || []} />
+                                    <InputSelect field="iIdKategori" label={fieldLabels["iIdKategori"] || "iIdKategori"} value={data["iIdKategori"] ?? ""} onChange={handleKategoriChange} error={errors["iIdKategori"]} options={selects?.["iIdKategori"] || []} />
                                 </div>
                                 </div>
 
                                 <div className="row">
                                 <div className="col-12 col-md-6 col-lg-4">
-                                    <InputSelect field="iIdSubkategori" label={fieldLabels["iIdSubkategori"] || "iIdSubkategori"} value={data["iIdSubkategori"] ?? ""} onChange={(v) => setData("iIdSubkategori", v)} error={errors["iIdSubkategori"]} options={selects?.["iIdSubkategori"] || []} />
+                                    <InputSelect field="iIdSubkategori" label={fieldLabels["iIdSubkategori"] || "iIdSubkategori"} value={data["iIdSubkategori"] ?? ""} onChange={(v) => setData("iIdSubkategori", v)} error={errors["iIdSubkategori"]} options={subkategoriOptions} />
                                 </div>
                                 <div className="col-12 col-md-6 col-lg-4">
                                     <InputText field="vDeskripsisingkat" label={fieldLabels["vDeskripsisingkat"] || "vDeskripsisingkat"} value={data["vDeskripsisingkat"] ?? ""} onChange={(v) => setData("vDeskripsisingkat", v)} error={errors["vDeskripsisingkat"]} />
@@ -64,7 +79,7 @@ export default function Form() {
 
                                 <div className="row">
                                 <div className="col-12">
-                                    <InputTextarea field="vDeskripsidetail" label={fieldLabels["vDeskripsidetail"] || "vDeskripsidetail"} value={data["vDeskripsidetail"] ?? ""} onChange={(v) => setData("vDeskripsidetail", v)} error={errors["vDeskripsidetail"]} />
+                                    <InputEditor field="vDeskripsidetail" label={fieldLabels["vDeskripsidetail"] || "vDeskripsidetail"} value={data["vDeskripsidetail"] ?? ""} onChange={(v) => setData("vDeskripsidetail", v)} error={errors["vDeskripsidetail"]} />
                                 </div>
                                 </div>
 

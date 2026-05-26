@@ -1,8 +1,9 @@
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
 import Pagination from "@/Components/Pagination";
+import DateRangePicker from "@/Components/DateRangePicker";
 
-const TABLE_COLUMNS = ["iIdBarang", "vNama", "nHarga", "nHargastrike", "nIsi", "eTerkecil", "eTerbesar"];
+const TABLE_COLUMNS = ["iIdBarang", "vNama", "vSku", "nHarga", "nHargastrike"];
 
 export default function Index() {
     const { props } = usePage();
@@ -43,11 +44,8 @@ export default function Index() {
         setTimers((prev) => ({ ...prev, [col]: timer }));
     };
 
-    const handleDateRange = (field, value) => {
-        const updated = { ...dateRanges, [field]: value };
-        setDateRanges(updated);
-
-        clearTimeout(timers[field]);
+        const commitDateRange = (updated) => {
+        clearTimeout(timers["_range"]);
         const params = {};
         TABLE_COLUMNS.forEach((c) => {
             if (inputs[c]) params[c] = inputs[c];
@@ -61,8 +59,21 @@ export default function Index() {
                 replace: true,
             });
         }, 300);
-        setTimers((prev) => ({ ...prev, [field]: timer }));
+        setTimers((prev) => ({ ...prev, _range: timer }));
     };
+    const handleDateRange = (action, value) => {
+        if (action === "clear") {
+            const cleared = { tUpdated_from: "", tUpdated_to: "" };
+            setDateRanges((prev) => ({ ...prev, ...cleared }));
+            commitDateRange(cleared);
+            return;
+        }
+        const field = action === "from" ? "tUpdated_from" : "tUpdated_to";
+        const updated = { ...dateRanges, [field]: value };
+        setDateRanges(updated);
+        commitDateRange(updated);
+    };
+
 
     const handleDelete = (id) => {
         if (confirm("Yakin ingin menghapus data ini?")) {
@@ -225,8 +236,8 @@ export default function Index() {
                                                     />
                                                 </div>
                                             </th>
-                                            <th key="nIsi">
-                                                <h6>Isi</h6>
+                                            <th key="vSku">
+                                                <h6>SKU</h6>
                                                 <div className="search-wrap">
                                                     <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
@@ -235,53 +246,19 @@ export default function Index() {
                                                         type="text"
                                                         placeholder="Cari"
                                                         className="search-input"
-                                                        value={inputs["nIsi"] || ""}
-                                                        onChange={(e) => handleSearch("nIsi", e.target.value)}
+                                                        value={inputs["vSku"] || ""}
+                                                        onChange={(e) => handleSearch("vSku", e.target.value)}
                                                     />
                                                 </div>
                                             </th>
-                                            <th key="eTerkecil">
-                                                <h6>Terkecil</h6>
-                                                <div className="search-wrap">
-                                                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-                                                    </svg>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Cari"
-                                                        className="search-input"
-                                                        value={inputs["eTerkecil"] || ""}
-                                                        onChange={(e) => handleSearch("eTerkecil", e.target.value)}
-                                                    />
-                                                </div>
-                                            </th>
-                                            <th key="eTerbesar">
-                                                <h6>Terbesar</h6>
-                                                <div className="search-wrap">
-                                                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-                                                    </svg>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Cari"
-                                                        className="search-input"
-                                                        value={inputs["eTerbesar"] || ""}
-                                                        onChange={(e) => handleSearch("eTerbesar", e.target.value)}
-                                                    />
-                                                </div>
-                                            </th>
-                                            <th key="tUpdated">
+                                            <th key="tUpdated" style={{ minWidth: 160, width: 160 }}>
                                                 <h6>Diubah</h6>
-                                                <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
-                                                        value={dateRanges.tUpdated_from}
-                                                        onChange={(e) => handleDateRange("tUpdated_from", e.target.value)}
-                                                        placeholder="Dari"
-                                                    />
-                                                    <input type="date" className="search-input" style={{ padding: "5px 8px", minWidth: 0, width: "50%" }}
-                                                        value={dateRanges.tUpdated_to}
-                                                        onChange={(e) => handleDateRange("tUpdated_to", e.target.value)}
-                                                        placeholder="Sampai"
+                                                <div style={{ marginTop: 4 }}>
+                                                    <DateRangePicker
+                                                        from={dateRanges.tUpdated_from}
+                                                        to={dateRanges.tUpdated_to}
+                                                        onChange={handleDateRange}
+                                                        label="Filter tanggal"
                                                     />
                                                 </div>
                                             </th>
@@ -297,10 +274,18 @@ export default function Index() {
                                                         <td key="vNama"><p>{formatValue("vNama", item["vNama"])}</p></td>
                                                         <td key="nHarga"><p>{formatValue("nHarga", item["nHarga"])}</p></td>
                                                         <td key="nHargastrike"><p>{formatValue("nHargastrike", item["nHargastrike"])}</p></td>
-                                                        <td key="nIsi"><p>{formatValue("nIsi", item["nIsi"])}</p></td>
-                                                        <td key="eTerkecil"><p>{formatValue("eTerkecil", item["eTerkecil"])}</p></td>
-                                                        <td key="eTerbesar"><p>{formatValue("eTerbesar", item["eTerbesar"])}</p></td>
-                                                        <td key="tUpdated"><p>{item?.tUpdated ? String(item.tUpdated) : item?.tCreated ? String(item.tCreated) : "-"} / {item?.vUpdater || (item?.iUpdatedid ? "-" : "-")}</p></td>
+                                                        <td key="vSku"><p>{formatValue("vSku", item["vSku"])}</p></td>
+                                                        <td key="tUpdated" style={{ whiteSpace: "nowrap" }}>
+                                                            <p>
+                                                                {item?.tUpdated
+                                                                    ? String(item.tUpdated)
+                                                                    : item?.tCreated
+                                                                      ? String(item.tCreated)
+                                                                      : "-"}
+                                                                <br />
+                                                                {item?.vUpdater || "-"}
+                                                            </p>
+                                                        </td>
                                                         <td>
                                                         <div className="action d-flex" style={{ gap: 5, alignItems: "center" }}>
                                                             {relatedTables && relatedTables.map((rt) => (
@@ -343,7 +328,7 @@ export default function Index() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={10} style={{ textAlign: "center", padding: "20px 8px" }}>
+                                                <td colSpan={8} style={{ textAlign: "center", padding: "20px 8px" }}>
                                                     <p style={{ color: "#6b7280" }}>Belum ada data.</p>
                                                 </td>
                                             </tr>

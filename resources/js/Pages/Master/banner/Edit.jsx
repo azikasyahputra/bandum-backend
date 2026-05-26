@@ -15,7 +15,14 @@ export default function Form() {
 
     const defaultData = {};
     fields.forEach((field) => {
-        defaultData[field] = isEdit ? item[field] ?? "" : "";
+        let val = isEdit ? item[field] ?? "" : "";
+        if (isEdit && selects?.[field]) {
+            const matched = selects[field].find(o => o.value === val) || selects[field].find(o => o.value.toLowerCase() === String(val).toLowerCase());
+            if (matched) {
+                val = matched.value;
+            }
+        }
+        defaultData[field] = val;
     });
 
     const { data, setData, post, put, processing, errors } = useForm(defaultData);

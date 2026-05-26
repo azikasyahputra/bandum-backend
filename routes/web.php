@@ -113,6 +113,8 @@ Route::middleware('auth')->group(function () {
             Route::put("/{$t}/{id}", [$c, 'update'])->name("{$t}.update");
             Route::delete("/{$t}/{id}", [$c, 'destroy'])->name("{$t}.destroy");
         }
+
+        Route::get('/subkategori/by-kategori/{id}', [SubkategoriController::class, 'byKategori'])->name('subkategori.by-kategori');
     });
 
     Route::prefix('transaksi')->name('transaksi.')->group(function () {

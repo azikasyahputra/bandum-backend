@@ -9,5 +9,5 @@ class BarangKemasan extends Model
     protected $primaryKey = 'iId';
     protected $table = 'master_barang_kemasan';
 
-    protected $fillable = ['iId', 'iIdBarang', 'vNama', 'nHarga', 'nHargastrike', 'nIsi', 'eTerkecil', 'eTerbesar', 'eDeleted', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated'];
+    protected $fillable = ['iId', 'iIdBarang', 'vNama', 'nHarga', 'nHargastrike', 'vSku', 'eDeleted', 'iCreatedid', 'iUpdatedid', 'tCreated', 'tUpdated'];
 }
